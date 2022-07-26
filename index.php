@@ -2,7 +2,7 @@
 require 'core/bootstrap.php';
 
 $routes = [
-	'' => 'FrameworkController@index',
+	'' => 'InstakiloController@index',
 	'view' => 'FrameworkController@index',
 	'create' => 'FrameworkController@create',
 	'update' => 'FrameworkController@update',
@@ -10,7 +10,7 @@ $routes = [
 ];
 
 $db = [
-	'name'     => 'framework',
+	'name'     => 'instakilo',
 	'username' => 'root',
 	'password' => '',
 ];
