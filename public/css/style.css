@@ -1,0 +1,97 @@
+* {
+  font-family: Arial;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  /* For navigation */
+  /* For main content */
+}
+body nav {
+  display: flex;
+  width: 100%;
+  background-color: lightblue;
+  box-shadow: 2px 3px 5px grey;
+}
+body nav .part1 {
+  margin-left: 2rem;
+  display: flex;
+  width: 20%;
+}
+body nav .part1 img {
+  -o-object-fit: contain;
+     object-fit: contain;
+  width: 15%;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+body nav .part1 h1 {
+  margin-left: 1rem;
+}
+body nav .part2 {
+  width: 80%;
+  margin-top: auto;
+  margin-bottom: auto;
+  text-align: right;
+  margin-right: 2rem;
+}
+body nav .part2 a {
+  text-decoration: none;
+  color: black;
+  margin-left: 2rem;
+}
+body main {
+  margin: 2rem;
+  /* For table */
+}
+body main table {
+  width: 100%;
+  box-shadow: 0 0 10px 5px lightgray;
+}
+body main table,
+body main th,
+body main td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+body main th,
+body main td {
+  padding: 15px;
+  text-align: left;
+}
+body main tr:first-child {
+  background-color: #f2f2f2;
+}
+body main td a {
+  color: #3b3b3b;
+  text-decoration: none;
+}
+body main td a:visited {
+  color: #3b3b3b;
+  text-decoration: none;
+}
+body main td a:hover {
+  text-decoration: underline;
+  cursor: pointer;
+}
+body footer {
+  background-color: aqua;
+  text-align: center;
+}
+
+button {
+  padding: 20px;
+  margin: 4px 0px;
+  color: white;
+  background-color: #005475;
+  text-decoration: none;
+  box-shadow: 2px 3px 5px gray;
+  transition: 0.3s;
+  border-radius: 8px;
+  border: none;
+}
+button:hover {
+  background-color: #0079a8;
+  cursor: pointer;
+}/*# sourceMappingURL=style.css.map */
