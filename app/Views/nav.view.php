@@ -1,11 +1,20 @@
 <nav>
     <div class="part1">
-        <img src="assets/framework.png" alt="">
-        <h1>Framework</h1>
+        <img src="assets/logo.png" alt="">
+        <h1>Instakilo</h1>
     </div>
     <div class="part2">
-        <a href="">Home</a>
-        <a href="">About</a>
-        <a href="">Contact</a>
+        <input type="text" placeholder="Suche nach Personen">
     </div>
+    <div class="part3">
+        <img src="assets/upload.svg" alt="">
+        <img src="assets/profile.png" alt="">
+        <?php
+    // Check if the user is logged in, if not then redirect him to login page
+if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+    echo "<button>Login</button>";
+}
+?>
+    </div>
+
 </nav>

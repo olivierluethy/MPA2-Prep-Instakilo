@@ -1,5 +1,5 @@
 <?php
-class Framework
+class Login
 {
     public $db;
 

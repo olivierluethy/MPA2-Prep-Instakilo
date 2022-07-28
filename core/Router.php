@@ -5,7 +5,6 @@ class Router
     /**
      * Enthält alle definierten Routes.
      */
-    protected array $routes = [];
 
     /**
      * Initialisiert die definierten Routes.

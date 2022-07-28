@@ -1,6 +1,6 @@
 <?php
 
-class FrameworkController{
+class ImageUploadController{
     public function index(){
         $Data = new Framework();
         $pdo = connectDatabase();
