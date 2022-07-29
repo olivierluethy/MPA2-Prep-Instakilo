@@ -24,19 +24,33 @@
             <h2>Instakilo</h2>
             <h1>Welcome To Instakilo</h1>
             <div class="switch">
-                <button>Register</button>
-                <button>Login</button>
+                <button id="registerButton" onclick="navSwitch(1)">Register</button>
+                <button id="loginButton" onclick="navSwitch(2)">Login</button>
             </div>
 
-            <form action="/action_page.php">
+            <form id="login" action="/action_page.php">
                 <label for="fname">Email or Username:</label><br>
                 <input type="text" id="fname" name="fname" placeholder="Enter Email or Username"><br>
                 <label for="lname">Password:</label><br>
                 <input type="text" id="lname" name="lname" placeholder="Enter Password"><br><br>
                 <input type="submit" value="Login">
+            </form>
+
+            <form id="register" action="/action_page.php">
+                <label for="fname">Email:</label><br>
+                <input type="text" id="fname" name="fname" placeholder="Enter Email"><br>
+                <label for="lname">Username:</label><br>
+                <input type="text" id="lname" name="lname" placeholder="Enter Username"><br>
+                <label for="fname">Password:</label><br>
+                <input type="text" id="fname" name="fname" placeholder="Enter Email"><br>
+                <label for="fname">Verify Password:</label><br>
+                <input type="text" id="fname" name="fname" placeholder="Enter Password again"><br><br>
+                <input type="submit" value="Login">
             </form> 
         </div>
     </main>
+
+    <script src="public/js/login.js"></script>
 </body>
 
 </html>
