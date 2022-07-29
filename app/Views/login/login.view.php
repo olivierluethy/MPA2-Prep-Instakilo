@@ -29,22 +29,22 @@
             </div>
 
             <form id="login" action="/action_page.php">
-                <label for="fname">Email or Username:</label><br>
-                <input type="text" id="fname" name="fname" placeholder="Enter Email or Username"><br>
-                <label for="lname">Password:</label><br>
-                <input type="text" id="lname" name="lname" placeholder="Enter Password"><br><br>
+                <label for="emailuser">Email or Username:</label><br>
+                <input type="text" id="emailuser" name="emailuser" placeholder="Enter Email or Username"><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" placeholder="Enter Password"><br><br>
                 <input type="submit" value="Login">
             </form>
 
             <form id="register" action="/action_page.php">
-                <label for="fname">Email:</label><br>
-                <input type="text" id="fname" name="fname" placeholder="Enter Email"><br>
-                <label for="lname">Username:</label><br>
-                <input type="text" id="lname" name="lname" placeholder="Enter Username"><br>
-                <label for="fname">Password:</label><br>
-                <input type="text" id="fname" name="fname" placeholder="Enter Email"><br>
-                <label for="fname">Verify Password:</label><br>
-                <input type="text" id="fname" name="fname" placeholder="Enter Password again"><br><br>
+                <label for="email">Email:</label><br>
+                <input type="email" id="email" name="email" placeholder="Enter Email"><br>
+                <label for="username">Username:</label><br>
+                <input type="text" id="username" name="username" placeholder="Enter Username"><br>
+                <label for="password">Password:</label><br>
+                <input type="password" id="password" name="password" placeholder="Enter Email"><br>
+                <label for="verypass">Verify Password:</label><br>
+                <input type="password" id="verypass" name="verypass" placeholder="Enter Password again"><br><br>
                 <input type="submit" value="Login">
             </form> 
         </div>

@@ -81,13 +81,12 @@ body {
                     margin: 4px 2px;
                     cursor: pointer;
                     transition-duration: 0.4s;
-
                 }
             }
             label{
                 margin-left: 15rem;
             }
-            input[type=text] {
+            input[type=text], input[type=password], input[type=email] {
                 width: 50%;
                 padding: 12px 20px;
                 margin: 8px 0;

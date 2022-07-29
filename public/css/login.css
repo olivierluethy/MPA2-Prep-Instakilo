@@ -86,7 +86,7 @@ body main .loginInput .switch #loginButton {
 body main .loginInput label {
   margin-left: 15rem;
 }
-body main .loginInput input[type=text] {
+body main .loginInput input[type=text], body main .loginInput input[type=password], body main .loginInput input[type=email] {
   width: 50%;
   padding: 12px 20px;
   margin: 8px 0;
