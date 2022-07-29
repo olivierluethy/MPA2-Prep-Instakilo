@@ -1,0 +1,93 @@
+body {
+  padding: 0;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+}
+body main {
+  display: flex;
+  width: 100%;
+}
+body main .representation {
+  width: 50%;
+  height: 100vh;
+  display: block;
+  background: url("../../assets/imageForLoginPage.png") no-repeat center center fixed;
+  background-size: cover;
+}
+body main .representation .text1 {
+  background-color: black;
+  color: yellow;
+  font-weight: bold;
+  font-size: 20px;
+  margin-left: 50%;
+  margin-top: 20rem;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+  width: 700px;
+  padding: 20px;
+  text-align: center;
+  border-radius: 25px;
+  box-shadow: rgba(0, 0, 0, 0.16) 0px 3px 6px, rgba(0, 0, 0, 0.23) 0px 3px 6px;
+}
+body main .representation .text2 {
+  margin-top: 5rem;
+  width: 300px;
+}
+body main .loginInput {
+  width: 50%;
+  display: block;
+  background-color: lightgray;
+}
+body main .loginInput h1, body main .loginInput h2 {
+  text-align: center;
+}
+body main .loginInput h2 {
+  margin-bottom: 10rem;
+}
+body main .loginInput .switch {
+  margin-left: 34%;
+  margin-bottom: 6rem;
+  width: 32%;
+  background-color: black;
+  color: white;
+  align-items: center;
+  text-align: center;
+}
+body main .loginInput .switch button {
+  background-color: white;
+  border: none;
+  border-radius: 25px;
+  color: black;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+}
+body main .loginInput label {
+  margin-left: 15rem;
+}
+body main .loginInput input[type=text] {
+  width: 50%;
+  padding: 12px 20px;
+  margin: 8px 0;
+  margin-left: 15rem;
+  box-sizing: border-box;
+}
+body main .loginInput input[type=submit] {
+  background-color: #0057D8;
+  border: none;
+  border-radius: 20px;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  margin-left: 27rem;
+  cursor: pointer;
+  margin-top: 2rem;
+}/*# sourceMappingURL=login.css.map */
