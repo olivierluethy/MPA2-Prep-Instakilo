@@ -28,7 +28,7 @@
                 <button id="loginButton" onclick="navSwitch(2)">Login</button>
             </div>
 
-            <form id="login" action="/action_page.php">
+            <form id="login" action="login" method="POST">
                 <label for="emailuser">Email or Username:</label><br>
                 <input type="text" id="emailuser" name="emailuser" placeholder="Enter Email or Username"><br>
                 <label for="password">Password:</label><br>
@@ -36,7 +36,7 @@
                 <input type="submit" value="Login">
             </form>
 
-            <form id="register" action="/action_page.php">
+            <form id="register" action="register" method="POST">
                 <label for="email">Email:</label><br>
                 <input type="email" id="email" name="email" placeholder="Enter Email"><br>
                 <label for="username">Username:</label><br>

@@ -7,8 +7,8 @@ $routes = [
 	'home' => 'InstakiloController@index',
 
 	/* Login Page */
-	'login' => 'LoginController@index',
-	'register' => 'LoginController@index',
+	'login' => 'LoginController@login',
+	'register' => 'LoginController@register',
 
 	'view' => 'FrameworkController@index',
 	'create' => 'FrameworkController@create',
