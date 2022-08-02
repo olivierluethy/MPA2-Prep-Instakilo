@@ -9,6 +9,7 @@ $routes = [
 	/* Login Page */
 	'login' => 'LoginController@login',
 	'register' => 'LoginController@register',
+	'logout' => 'LoginController@logout',
 
 	'view' => 'FrameworkController@index',
 	'create' => 'FrameworkController@create',

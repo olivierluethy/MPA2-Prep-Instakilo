@@ -220,4 +220,14 @@ class LoginController{
             unset($pdo);
         }    
     }
+
+    public function logout(){
+        // Initialize the session
+        session_start();
+
+        $pdo = connectDatabase();
+		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        require 'app/Views/login/logout.view.php';
+    }
 }
