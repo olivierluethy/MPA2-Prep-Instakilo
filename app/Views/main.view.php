@@ -1,8 +1,12 @@
 <?php
-$dataCounter = 0;
+$mostLikedPostsCounter = 0;
+$followedPostsCounter = 0;
 
-foreach ($daten as $data){
-    $dataCounter++;
+foreach ($mostLikedPosts as $mostFollowedPosts2){
+    $mostFollowedPostsCounter++;
+}
+foreach ($followedPosts as $followedPosts2){
+    $followedPostsCounter++;
 }
 ?>
 
@@ -26,36 +30,28 @@ foreach ($daten as $data){
     <main>
     <?php
     // Check if the user is logged in, if not then redirect him to login page
-if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-    echo "<h1>You're not logged in</h1>";
-}
-?>
-        <?php
-    if($dataCounter > 0){
-        echo "
-        <table>
-
-        <tr>
-            <th>Name</th>
-            <th>Vorname</th>
-            <th>Email</th>
-            <th>Wurde erfasst am:</th>
-            <th>Bearbeiten</th>
-            <th>Löschen</th>
-        </tr>";
-        foreach ($daten as $data){
-            echo "<tr>
-            <td>" . $data['name'] ."</td>
-            <td>" . $data['vorname'] . "</td>
-            <td>" . $data['email'] . "</td>
-            <td>" . $data['created_at'] . "</td>
-            <td><a href='update?id=" . $data['id'] . "'>Daten bearbeiten</a></td>
-            <td><a href='delete?id=" . $data['id'] . "'>Daten Löschen</a></td>
-            </tr>";
+    if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+        if ($mostLikedPostsCounter > 0){
+            echo $mostFollowedPostsCounter;
+            echo "<div class='grid-container'>";
+            foreach ($mostFollowedPosts as $mostFollowedPosts2){
+                echo "<div></div>";
+            }
+            echo "</div>";
+        }else {
+            echo "<h1 class='noFollowsText'>Zurzeit keine Beiträge vorhanden</h1>";
         }
-        echo "</table>";
+        
     }else {
-        echo "<h1 class='noFollowsText'>Folge Personen um deren Inhalte zu sehen</h1>";
+        if($followedPostsCounter > 0){
+            echo "<div class='grid-container'>";
+            foreach ($followedPosts as $followedPosts2){
+                echo "<div></div>";
+            }
+            echo "</div>";
+        }else {
+            echo "<h1 class='noFollowsText'>Folge Personen um deren Inhalte zu sehen</h1>";
+        }
     }?>
 
     </main>

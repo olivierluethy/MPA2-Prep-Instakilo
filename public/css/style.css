@@ -74,35 +74,18 @@ body main {
 body main .noFollowsText {
   text-align: center;
 }
-body main table {
-  width: 100%;
-  box-shadow: 0 0 10px 5px lightgray;
+body main .grid-container {
+  display: grid;
+  grid-template-columns: auto auto auto auto;
+  gap: 10px;
+  background-color: #2196F3;
+  padding: 10px;
 }
-body main table,
-body main th,
-body main td {
+body main .grid-container > div {
+  background-color: rgba(255, 255, 255, 0.8);
   border: 1px solid black;
-  border-collapse: collapse;
-}
-body main th,
-body main td {
-  padding: 15px;
-  text-align: left;
-}
-body main tr:first-child {
-  background-color: #f2f2f2;
-}
-body main td a {
-  color: hsl(197deg, 0%, 23%);
-  text-decoration: none;
-}
-body main td a:visited {
-  color: hsl(197deg, 0%, 23%);
-  text-decoration: none;
-}
-body main td a:hover {
-  text-decoration: underline;
-  cursor: pointer;
+  text-align: center;
+  font-size: 30px;
 }
 body footer {
   background-color: aqua;
