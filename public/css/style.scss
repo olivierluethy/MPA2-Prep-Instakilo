@@ -177,6 +177,11 @@ body {
             margin: 8px 0;
             box-sizing: border-box;
         }
+        input[type=checkbox] {
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+        }
         input[type=submit] {
             background-color: #4CAF50;
             /* Green */

@@ -5,9 +5,9 @@ $followedPostsCounter = 0;
 foreach ($mostLikedPosts as $mostFollowedPosts2){
     $mostFollowedPostsCounter++;
 }
-foreach ($followedPosts as $followedPosts2){
-    $followedPostsCounter++;
-}
+// foreach ($followedPosts as $followedPosts2){
+//     $followedPostsCounter++;
+// }
 ?>
 
 <!DOCTYPE html>
@@ -29,36 +29,39 @@ foreach ($followedPosts as $followedPosts2){
     ?>
     <main>
         <?php
-    // Check if the user is logged in, if not then redirect him to login page
-    if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-        if ($mostLikedPostsCounter > 0){
-            echo $mostFollowedPostsCounter;
-            echo "<div class='grid-container'>";
-            foreach ($mostFollowedPosts as $mostFollowedPosts2){
-                echo "<div></div>";
+        // Check if the user is logged in, if not then redirect him to login page
+        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+            if ($mostLikedPostsCounter > 0){
+                
+            }else {
+                echo "<h1 class='noFollowsText'>Zurzeit keine Beiträge vorhanden</h1>";
             }
-            echo "</div>";
-        }else {
-            echo "<h1 class='noFollowsText'>Zurzeit keine Beiträge vorhanden</h1>";
         }
-        
-    }else {
-        if($followedPostsCounter > 0){
-            echo "<div class='grid-container'>";
-            foreach ($followedPosts as $followedPosts2){
-                echo "<div></div>";
-            }
-            echo "</div>";
-        }else {
-            echo "<h1 class='noFollowsText'>Folge Personen um deren Inhalte zu sehen</h1>";
+            
+        echo $mostFollowedPostsCounter;
+        echo "<div class='grid-container'>";
+        foreach ($mostLikedPosts as $mostLikedPosts2){
+            echo "<div>
+                <p>". $mostLikedPosts2['titel'] . "</p>
+                <img src='imageView.php?image_id=". $mostLikedPosts2['imageId'] ."' />
+            </div>";
         }
-    }?>
-
+        echo "</div>";
+        // }else {
+        //     if($followedPostsCounter > 0){
+        //         echo "<div class='grid-container'>";
+        //         foreach ($followedPosts as $followedPosts2){
+        //             echo "<div></div>";
+        //         }
+        //         echo "</div>";
+        //     }else {
+        //         echo "<h1 class='noFollowsText'>Folge Personen um deren Inhalte zu sehen</h1>";
+        //     }
+        // }?>
     </main>
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
-
         <!-- Modal content -->
         <div class="modal-content">
             <div class="modal-header">
@@ -83,7 +86,6 @@ foreach ($followedPosts as $followedPosts2){
                 </form>
             </div>
         </div>
-
     </div>
 
     <?php

@@ -177,6 +177,11 @@ body .modal-body input[type=file] {
   margin: 8px 0;
   box-sizing: border-box;
 }
+body .modal-body input[type=checkbox] {
+  width: 20px;
+  height: 20px;
+  background-color: #000;
+}
 body .modal-body input[type=submit] {
   background-color: #4CAF50;
   /* Green */

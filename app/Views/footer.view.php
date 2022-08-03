@@ -1,4 +1,4 @@
 <footer>
-    <h1>Footer</h1>
+    <h1>Instakilo - Vorbereitung auf MPA</h1>
     <p id="year"></p>
 </footer>
