@@ -58,7 +58,7 @@ class LoginController{
                         // Check if username exists, if yes then verify password
                         if($stmt->rowCount() == 1){
                             if($row = $stmt->fetch()){
-                                $id = $row["id"];
+                                $id = $row["userId"];
                                 $email = $row["email"];
                                 $hashed_password = $row["password"];
                                 if(password_verify($password, $hashed_password)){
@@ -189,7 +189,7 @@ class LoginController{
                                 // After register is successful, auto login
                                 if($stmt->rowCount() == 1){
                                     if($row = $stmt->fetch()){
-                                        $id = $row["id"];
+                                        $id = $row["userId"];
                                         $email = $row["email"];
                                         $hashed_password = $row["password"];
                                         if(password_verify($password, $hashed_password)){

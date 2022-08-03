@@ -1,5 +1,5 @@
 <?php
-$mostLikedPostsCounter = 0;
+$mostFollowedPostsCounter = 0;
 $followedPostsCounter = 0;
 
 foreach ($mostLikedPosts as $mostFollowedPosts2){
@@ -66,7 +66,7 @@ foreach ($followedPosts as $followedPosts2){
                 <h2>Upload Image</h2>
             </div>
             <div class="modal-body">
-                <form action="/action_page.php" method="POST"><br>
+                <form action="imageUpload" method="POST" enctype="multipart/form-data"><br>
                     <label for="file">Choose File:</label><br>
                     <input type="file" id="myFile" name="filename"><br>
                     <label for="title">Titel:</label><br>
@@ -78,7 +78,7 @@ foreach ($followedPosts as $followedPosts2){
                     <label for="ort">Ort:</label><br>
                     <input type="text" id="ort" name="ort" placeholder="Bitte Ort eingeben"><br><br>
                     <label for="oeffentlich">Öffentlich:</label><br>
-                    <input type="checkbox" id="oeffentlich" name="oeffentlich"><br><br>
+                    <input type="checkbox" id="oeffentlich" name="oeffentlich" value="Yes"><br><br>
                     <input type="submit" value="Hochladen">
                 </form>
             </div>

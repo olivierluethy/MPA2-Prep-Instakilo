@@ -2,66 +2,41 @@
 
 class ImageUploadController{
     public function index(){
-        $Data = new Framework();
-        $pdo = connectDatabase();
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $imageUpload = new ImageUpload();
 
-        $daten = $Data -> index();
-        $daten = $daten -> fetchAll();
+        // Initialize the session
+        session_start();
 
-        require 'app/Views/viewData.view.php';
-    }
+        require_once 'app/Views/login/config.php';
 
-    public function create(){
-        $Data = new Framework();
         $pdo = connectDatabase();
 
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'];
-            $vorname = $_POST['vorname'];
-            $email = $_POST['email'];
+            /* For Image Upload */
+            if(count($_FILES) > 0) {
+                if(is_uploaded_file($_FILES['filename']['tmp_name'])) {
+                    $imgData =addslashes(file_get_contents($_FILES['filename']['tmp_name']));
+                    $imageProperties = getimageSize($_FILES['filename']['tmp_name']);
 
-            $Data -> create($name, $vorname, $email);
+                    $public = false;
 
-            header('Location: http://localhost/Constant_Framework/');
+                    $title = $_POST['title'];
+                    $beschreibung = $_POST['beschreibung'];
+                    $datum = $_POST['datum'];
+                    $ort = $_POST['ort'];
+                    $oeffentlich = $_POST['oeffentlich'];
+
+                    if ($oeffentlich == 'Yes') {
+                        $public = 1;
+                    }else {
+                        $public = 0;
+                    }
+                
+                    $imageUpload->uploadImage($title, $beschreibung, $datum, $ort, $public, $imageProperties['mime'], $imgData, $_SESSION['id']);
+
+                    header('Location: http://localhost/Instakilo/');
+                }
+            }
         }
-
-        require 'app/Views/createData.view.php';
-    }
-
-    public function update(){
-        $Data = new Framework();
-        $id = $_GET['id'];
-
-        $pdo = connectDatabase();
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $name = $_POST['name'];
-            $vorname = $_POST['vorname'];
-            $email = $_POST['email'];
-
-            $Data -> update($name, $vorname, $email, $id);
-            
-            header('Location: http://localhost/Constant_Framework/');
-        }else{
-            $statement = $pdo->prepare('SELECT * FROM Person WHERE id = :id');
-            $statement->bindParam(':id', $id, PDO::PARAM_STR);
-            $statement->execute();
-            $daten = $statement->fetchAll();
-        }
-        require 'app/Views/editData.view.php';
-    }
-
-    public function delete(){
-        $Data = new Framework();
-        $id = $_GET['id'];
-
-        $pdo = connectDatabase();
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-        $Data -> delete($id);
-
-        header('Location: http://localhost/Constant_Framework/');
     }
 }
