@@ -2,6 +2,14 @@
 
 class LoginController{
     public function login(){
+        // Initialize the session
+        session_start();
+        
+        // Check if the user is already logged in, if yes then redirect him to index page
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+            header("location: home");
+            exit;
+        }
         $pdo = connectDatabase();
 		$pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 

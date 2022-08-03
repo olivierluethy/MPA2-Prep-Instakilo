@@ -10,7 +10,7 @@ class Framework
 
     public function followedPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.imageType, images.imageData FROM images
-        INNER JOIN users ON users.userId = images.fk_userId INNER JOIN followers ON followers.fk_userId = users.userId WHERE followers.fk_userId = :id ORDER BY COUNT(followers.followId) DESC');
+        INNER JOIN users ON users.userId = images.fk_userId INNER JOIN followers ON followers.fk_userId = users.userId WHERE followers.fk_userId = :id');
         $statement->bindParam(':id', $_SESSION['id']);
         $statement->execute();
         return $statement;

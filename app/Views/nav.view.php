@@ -13,7 +13,7 @@
                 if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
                     echo "<button onclick='goToLogin()' class='loginBtn'>Login  <i class='fa fa-sign-in'></i></button>";
                 }else{
-                    echo "<img src='assets/upload.svg' alt=''>
+                    echo "<img onclick='showModal()' src='assets/upload.svg' alt=''>
                     <div class='dropdown'>
                         <img src='assets/profile.png' alt=''>
                         <div class='dropdown-content'>
