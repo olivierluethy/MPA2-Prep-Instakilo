@@ -2,6 +2,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: Arial;
+  overflow-x: hidden;
   /* For navigation */
   /* For Modal */
   /* The Modal (background) */
@@ -213,14 +214,53 @@ body main .grid-container {
   display: grid;
   grid-template-columns: auto auto auto auto;
   gap: 10px;
-  background-color: #2196F3;
-  padding: 10px;
+}
+body main .grid-container .imgAndUser {
+  text-align: center;
+  display: flex;
+  font-size: 20px;
+}
+body main .grid-container .imgAndUser img {
+  -o-object-fit: contain;
+     object-fit: contain;
+  width: 2%;
+  margin-right: 3rem;
+  margin-left: 4rem;
+}
+body main .grid-container .imgAndUser .username {
+  text-align: left;
+  font-size: 25px;
+  font-weight: bold;
+}
+body main .grid-container .post {
+  max-width: 360px;
+  max-height: 490px;
+  border: 1px solid black;
+  border-radius: 30px;
+  box-shadow: 5px 5px 15px 5px #BAACB3;
+}
+body main .grid-container .post p {
+  text-align: center;
+  font-size: 15px;
+}
+body main .grid-container .likeAndDes {
+  text-align: center;
+  display: flex;
+  font-size: 20px;
+}
+body main .grid-container .likeAndDes img {
+  -o-object-fit: contain;
+     object-fit: contain;
+  width: 2%;
+  margin-right: 3rem;
+  margin-left: 4rem;
 }
 body main .grid-container > div {
-  background-color: rgba(255, 255, 255, 0.8);
-  border: 1px solid black;
+  background-color: #FFFFFF;
   text-align: center;
   font-size: 30px;
+  align-items: center;
+  margin-right: -100rem;
 }
 body footer {
   background-color: aqua;

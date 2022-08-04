@@ -29,13 +29,23 @@ foreach ($posts as $posts2){
     ?>
     <main>
         <?php
-        echo $postsCounter;
         echo "<div class='grid-container'>";
         foreach ($posts as $posts2){
             echo "<div>
-                <p>". $posts2['titel'] . "</p>
-                <img src='app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
-            </div>";
+                    <div class='imgAndUser'>
+                        <img src='assets/profile.png' alt=''>
+                        <p class='username'>" . $posts2['username'] . "</p>
+                    </div>
+                    <div class='post'>
+                        <p>". $posts2['titel'] . "</p>
+                        <img src='app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
+                    </div>";
+                    echo "<div class='likeAndDes'>";
+                        echo "<img src='assets/heart.png' alt=''>";
+                        echo "<p>". $posts2['beschreibung'] . "</p>";
+                    echo "</div>";
+                    
+            echo "</div>";
         }
         echo "</div>";?>
     </main>

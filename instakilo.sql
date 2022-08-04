@@ -8,7 +8,7 @@ USE instakilo;
 
 CREATE TABLE users (
   userId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  username VARCHAR(255) NOT NULL,
+  username VARCHAR(255) NOT NULL UNIQUE,
   email VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   imageType varchar(255) NOT NULL,

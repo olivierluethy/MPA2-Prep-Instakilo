@@ -146,6 +146,9 @@ class LoginController{
             } else{
                 $password = trim($_POST["password"]);
             }
+
+            $param_username = trim($_POST["username"]);
+            $username = $param_username;
             
             // Validate confirm password
             if(empty(trim($_POST["verypass"]))){
@@ -160,10 +163,11 @@ class LoginController{
             // Check input errors before inserting in database
             if(empty($username_err) && empty($password_err) && empty($confirm_password_err)){
                 // Prepare an insert statement
-                $sql = "INSERT INTO users (email, password) VALUES (:email, :password)";
+                $sql = "INSERT INTO users (username, email, password) VALUES (:username, :email, :password)";
                 
                 if($stmt = $pdo->prepare($sql)){
                     // Bind variables to the prepared statement as parameters
+                    $stmt->bindParam(":username", $param_username, PDO::PARAM_STR);
                     $stmt->bindParam(":email", $param_email, PDO::PARAM_STR);
                     $stmt->bindParam(":password", $param_password, PDO::PARAM_STR);
                     

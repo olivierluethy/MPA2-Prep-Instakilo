@@ -15,7 +15,8 @@ class Instakilo
     // }
 
     public function posts(){
-        $statement = $this->db->prepare('SELECT * FROM images');
+        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.likes, images.imageType, images.ImageData, users.username FROM images
+        INNER JOIN users ON users.userId = images.fk_userId');
         $statement->execute();
         return $statement;
     }

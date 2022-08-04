@@ -2,6 +2,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: Arial;
+    overflow-x: hidden;
     /* For navigation */
     nav {
         .grid-container {
@@ -214,14 +215,51 @@ body {
             display: grid;
             grid-template-columns: auto auto auto auto;
             gap: 10px;
-            background-color: #2196F3;
-            padding: 10px;
+            .imgAndUser {
+                text-align: center;
+                display: flex;
+                font-size: 20px;
+                img {
+                    object-fit: contain;
+                    width: 2%;
+                    margin-right: 3rem;
+                    margin-left: 4rem;
+                }
+                .username {
+                    text-align: left;
+                    font-size: 25px;
+                    font-weight: bold;
+                }
+            }
+            .post {
+                max-width: 360px;
+                max-height: 490px;
+                border: 1px solid black;
+                border-radius: 30px;
+                box-shadow: 5px 5px 15px 5px #BAACB3;
+                p {
+                    text-align: center;
+                    font-size: 15px;
+                }
+            }
+            .likeAndDes {
+                text-align: center;
+                display: flex;
+                font-size: 20px;
+                img {
+                    object-fit: contain;
+                    width: 2%;
+                    margin-right: 3rem;
+                    margin-left: 4rem;
+                }
+            }
         }
         .grid-container>div {
-            background-color: rgba(255, 255, 255, 0.8);
-            border: 1px solid black;
+            background-color: #FFFFFF;
             text-align: center;
             font-size: 30px;
+            align-items: center;
+            margin-right: -100rem;
         }
     }
     footer {
@@ -245,3 +283,5 @@ button {
         cursor: pointer;
     }
 }
+
+;
