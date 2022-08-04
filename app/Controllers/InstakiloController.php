@@ -10,8 +10,8 @@ class InstakiloController{
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
         /* Get most liked posts */
-        $mostLikedPosts = $Instakilo -> mostLikedPosts();
-        $mostLikedPosts = $mostLikedPosts -> fetchAll();
+        $posts = $Instakilo -> posts();
+        $posts = $posts -> fetchAll();
 
         // $followedPosts = $Instakilo -> followedPosts();
         // $followedPosts = $followedPosts -> fetchAll();

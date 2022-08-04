@@ -14,8 +14,8 @@ class Instakilo
     //     return $statement;
     // }
 
-    public function mostLikedPosts(){
-        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.imageType, images.imageData FROM images');
+    public function posts(){
+        $statement = $this->db->prepare('SELECT * FROM images');
         $statement->execute();
         return $statement;
     }

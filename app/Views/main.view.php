@@ -1,9 +1,9 @@
 <?php
-$mostFollowedPostsCounter = 0;
-$followedPostsCounter = 0;
+$postsCounter = 0;
+// $followedPostsCounter = 0;
 
-foreach ($mostLikedPosts as $mostFollowedPosts2){
-    $mostFollowedPostsCounter++;
+foreach ($posts as $posts2){
+    $postsCounter++;
 }
 // foreach ($followedPosts as $followedPosts2){
 //     $followedPostsCounter++;
@@ -29,35 +29,15 @@ foreach ($mostLikedPosts as $mostFollowedPosts2){
     ?>
     <main>
         <?php
-        // Check if the user is logged in, if not then redirect him to login page
-        if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
-            if ($mostLikedPostsCounter > 0){
-                
-            }else {
-                echo "<h1 class='noFollowsText'>Zurzeit keine Beiträge vorhanden</h1>";
-            }
-        }
-            
-        echo $mostFollowedPostsCounter;
+        echo $postsCounter;
         echo "<div class='grid-container'>";
-        foreach ($mostLikedPosts as $mostLikedPosts2){
+        foreach ($posts as $posts2){
             echo "<div>
-                <p>". $mostLikedPosts2['titel'] . "</p>
-                <img src='imageView.php?image_id=". $mostLikedPosts2['imageId'] ."' />
+                <p>". $posts2['titel'] . "</p>
+                <img src='app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
             </div>";
         }
-        echo "</div>";
-        // }else {
-        //     if($followedPostsCounter > 0){
-        //         echo "<div class='grid-container'>";
-        //         foreach ($followedPosts as $followedPosts2){
-        //             echo "<div></div>";
-        //         }
-        //         echo "</div>";
-        //     }else {
-        //         echo "<h1 class='noFollowsText'>Folge Personen um deren Inhalte zu sehen</h1>";
-        //     }
-        // }?>
+        echo "</div>";?>
     </main>
 
     <!-- The Modal -->
@@ -75,7 +55,7 @@ foreach ($mostLikedPosts as $mostFollowedPosts2){
                     <label for="title">Titel:</label><br>
                     <input type="text" id="title" name="title" placeholder="Bitte Titel eingeben"><br><br>
                     <label for="beschreibung">Beschreibung:</label><br>
-                    <textarea id="story" name="beschreibung" rows="5" cols="33" placeholder="Schreiben sie eine Beschreibung"></textarea><br><br>
+                    <textarea id="story" name="beschreibung" rows="5" cols="71" placeholder="Schreiben sie eine Beschreibung"></textarea><br><br>
                     <label for="datum">Datum:</label><br>
                     <input type="date" id="datum" name="datum"><br><br>
                     <label for="ort">Ort:</label><br>
