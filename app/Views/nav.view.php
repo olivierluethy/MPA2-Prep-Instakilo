@@ -17,7 +17,7 @@
                     <div class='dropdown'>
                         <img src='assets/profile.png' alt=''>
                         <div class='dropdown-content'>
-                            <a href='#'>Profile</a>
+                            <a href='profile'>Profile</a>
                             <a href='#'>Settings</a>
                             <a href='#'>Darkmode</a>
                             <hr>

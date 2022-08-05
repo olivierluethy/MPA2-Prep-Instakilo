@@ -20,6 +20,28 @@ class InstakiloController{
     }
 
     public function profile(){
-        require 'app/Views/profile.view.php';
+        // Initialize the session
+        session_start();
+
+        // Check if the user is already logged in, if yes then redirect him to index page
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+
+            $Instakilo = new Instakilo();
+            $pdo = connectDatabase();
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            $profile = $Instakilo -> profile($_SESSION['id']);
+            $profile = $profile -> fetchAll();
+
+            $followers = $Instakilo -> followers($_SESSION['id']);
+            $followers = $followers -> fetchAll();
+
+            $follows = $Instakilo -> follows($_SESSION['id']);
+            $follows = $follows -> fetchAll();
+
+            require 'app/Views/profile.view.php';
+        }else{
+            header("location: login");
+        }
     }
 }

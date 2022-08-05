@@ -23,8 +23,8 @@ CREATE TABLE users (
 
 CREATE TABLE followers (
   followId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
-  fk_userId INT NOT NULL,
-  fk_followsId INT NOT NULL,
+  fk_userId INT NOT NULL, /* User der gefolgt wird */
+  fk_followsId INT NOT NULL, /* User der den anderen folgt */
   FOREIGN KEY (fk_userId) REFERENCES users(userId),
   FOREIGN KEY (fk_followsId) REFERENCES users(userId)
 );

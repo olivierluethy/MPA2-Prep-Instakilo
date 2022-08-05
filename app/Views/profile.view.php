@@ -36,23 +36,43 @@
             </div>
         </div>
         <div class="item3">
-            <div class="profile-name">
-                <img src="assets/profile.png" alt="">
-                <h1>Name of creator</h1>
+            <?php
+            foreach($profile as $profile2){
+                echo "
+                <div class='profile-name'>
+                    <img src='assets/profile.png' alt=''>
+                    <h1>" . $profile2["username"] . "</h1>
+                </div>";
+            }?>
+            <div class='follow'>
+                <?php
+            foreach($followers as $followers2){
+                echo "
+                <div class='followers'>
+                        <h3>" . $followers2['Followers'] . "</h3>
+                        <h3>Followers</h3>
+                    </div>
+                ";
+            }?>
+            <?php
+            foreach($follows as $follows2){
+                echo "
+                <div class='follows'>
+                        <h3>" . $follows2['Follows'] . "</h3>
+                        <h3>Followers</h3>
+                    </div>
+                ";
+            }?>
             </div>
-            <div class="follow">
-                <div class="followers">
-                    <h3>Numbers</h3>
-                    <h3>Followers</h3>
+            <?php
+            foreach($profile as $profile2){
+                echo "
+                <div class='description'>
+                    <textarea name='' id='' cols='85' rows='25'>" . $profile2['beschreibung'] . "</textarea>
                 </div>
-                <div class="follows">
-                    <h3>Numbers</h3>
-                    <h3>Follows</h3>
-                </div>
-            </div>
-            <div class="description">
-                <textarea name="" id="" cols="85" rows="25"></textarea>
-            </div>
+                ";
+            }
+            ?>
         </div>
     </div>
 </body>
