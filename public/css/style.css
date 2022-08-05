@@ -25,6 +25,7 @@ body nav .grid-container > div {
   font-size: 30px;
 }
 body nav div:nth-child(1) {
+  cursor: pointer;
   display: flex;
 }
 body nav div:nth-child(1) img {
@@ -206,6 +207,9 @@ body .modal-body input[type=submit]:hover {
 body main {
   margin: 2rem;
   /* For table */
+}
+body main h1 {
+  text-align: center;
 }
 body main .noFollowsText {
   text-align: center;

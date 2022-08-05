@@ -1,6 +1,6 @@
 <nav>
     <div class="grid-container">
-        <div>
+        <div onclick='backToMain()'>
             <img src="assets/logo.png" alt="">
             <h1>Instakilo</h1>
         </div>

@@ -1,15 +1,3 @@
-<?php
-$postsCounter = 0;
-// $followedPostsCounter = 0;
-
-foreach ($posts as $posts2){
-    $postsCounter++;
-}
-// foreach ($followedPosts as $followedPosts2){
-//     $followedPostsCounter++;
-// }
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -18,42 +6,36 @@ foreach ($posts as $posts2){
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="public/css/style.css">
+    <link rel="stylesheet" href="public/css/visitProfile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="shortcut icon" href="assets/favicon.ico">
-    <title>Instakilo</title>
+    <title>Profile</title>
 </head>
 
 <body>
     <?php
     include("nav.view.php");
     ?>
-    <main>
+
+    <div class="visit-container">
+        <div class="item2">
+            <img src="assets/profile.png" alt="">
+        </div>
+        <div class="item3">Name of creator</div>
+        <div class="item4">Number</div>
+        <div class="item5">Number</div>
+        <div class="item6">
+            <textarea name='' id='' cols='85' rows='10'>" . $profile2['beschreibung'] . "</textarea><br>
         <?php
-        if($postsCounter > 0){
-            echo "<div class='grid-container'>";
-            foreach ($posts as $posts2){
-                echo "<div>";
-                    echo "
-                    <div onclick='visitProfile(" . $posts2['fk_userId'] . ")' class='imgAndUser'>
-                        <img src='assets/profile.png' alt=''>
-                        <p class='username'>" . $posts2['username'] . "</p>
-                    </div>
-                    <div class='post'>
-                        <p>". $posts2['titel'] . "</p>
-                        <img src='app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
-                    </div>
-                    <div class='likeAndDes'>
-                        <img src='assets/heart.png' alt=''>
-                        <p>". $posts2['beschreibung'] . "</p>
-                    </div>
-                </div>";
-            }
+        // Check if the user is already logged in, if yes then redirect him to index page
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+            echo "<button href='follow'>Follow</button>";
         }else {
-            echo "<h1>Derzeit noch keine Beiträge</h1>";
+            echo "<button href='login'>Follow</button>";
         }
         ?>
         </div>
-    </main>
+    </div>
 
     <!-- The Modal -->
     <div id="myModal" class="modal">
@@ -83,7 +65,6 @@ foreach ($posts as $posts2){
             </div>
         </div>
     </div>
-
     <?php
     include("footer.view.php");
     ?>

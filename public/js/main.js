@@ -6,6 +6,10 @@ function showModal() {
     modal.style.display = "block";
 }
 
+function backToMain() {
+    location.href = "home";
+}
+
 // Get the modal
 var modal = document.getElementById("myModal");
 

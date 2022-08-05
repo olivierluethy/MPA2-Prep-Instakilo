@@ -6,7 +6,9 @@ $routes = [
 	'' => 'InstakiloController@index',
 	'home' => 'InstakiloController@index',
 	'profile' => 'InstakiloController@profile',
+	'visitProfile' => 'InstakiloController@visitProfile',
 
+	'follow' => 'InstakiloController@follow',
 	'imageUpload' => 'ImageUploadController@index',
 
 	/* Login Page */

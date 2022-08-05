@@ -9,8 +9,8 @@ class InstakiloController{
         $pdo = connectDatabase();
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        /* Get most liked posts */
-        $posts = $Instakilo -> posts();
+        /* Get posts */
+        $posts = $Instakilo -> posts($_SESSION['id']);
         $posts = $posts -> fetchAll();
 
         // $followedPosts = $Instakilo -> followedPosts();
@@ -43,5 +43,25 @@ class InstakiloController{
         }else{
             header("location: login");
         }
+    }
+
+    public function visitProfile(){
+        // Initialize the session
+        session_start();
+
+        require 'app/Views/visitProfile.view.php';
+    }
+
+    public function follow($id){
+        // Initialize the session
+        session_start();
+
+        $Instakilo = new Instakilo();
+        $pdo = connectDatabase();
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        /* Get most liked posts */
+        $posts = $Instakilo -> posts();
+        $posts = $posts -> fetchAll();
     }
 }
