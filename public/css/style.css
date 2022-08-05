@@ -226,6 +226,7 @@ body main .grid-container .imgAndUser img {
   width: 2%;
   margin-right: 3rem;
   margin-left: 4rem;
+  cursor: pointer;
 }
 body main .grid-container .imgAndUser .username {
   text-align: left;
@@ -249,6 +250,7 @@ body main .grid-container .likeAndDes {
   font-size: 20px;
 }
 body main .grid-container .likeAndDes img {
+  cursor: pointer;
   -o-object-fit: contain;
      object-fit: contain;
   width: 2%;

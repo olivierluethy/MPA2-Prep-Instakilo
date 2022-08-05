@@ -1,0 +1,85 @@
+body {
+  padding: 0;
+  margin: 0;
+}
+body .item2 {
+  grid-area: menu;
+}
+body .item2 .setting {
+  padding: 20px;
+  cursor: pointer;
+}
+body .item2 .setting:nth-child(1) {
+  background-color: #FFD700;
+  transition-duration: 0.4s;
+}
+body .item2 .setting:nth-child(1):hover {
+  background-color: black;
+  color: #FFD700;
+}
+body .item2 .setting:nth-child(2):hover {
+  background-color: black;
+  color: white;
+}
+body .item2 .setting:nth-child(3) {
+  background-color: #E6E6E6;
+  transition-duration: 0.4s;
+}
+body .item2 .setting:nth-child(3):hover {
+  background-color: black;
+  color: #E6E6E6;
+}
+body .item2 .setting:nth-child(4) {
+  background-color: #CCCCCC;
+  transition-duration: 0.4s;
+}
+body .item2 .setting:nth-child(4):hover {
+  color: #CCCCCC;
+  background-color: black;
+}
+body .item2 .setting:nth-child(5) {
+  background-color: #B3B3B3;
+  transition-duration: 0.4s;
+}
+body .item2 .setting:nth-child(5):hover {
+  background-color: black;
+  color: #B3B3B3;
+}
+body .item3 {
+  grid-area: main;
+}
+body .item3 .profile-name {
+  margin-left: 20rem;
+  display: flex;
+}
+body .item3 .profile-name img {
+  width: 10%;
+  -o-object-fit: contain;
+     object-fit: contain;
+  margin-right: 2rem;
+}
+body .item3 .follow {
+  display: flex;
+}
+body .item3 .follow .followers {
+  display: block;
+  margin-right: 5rem;
+  margin-left: 30rem;
+}
+body .item3 .follow .follows {
+  display: block;
+}
+body .item3 .description {
+  margin-left: -18rem;
+}
+body .profile-container {
+  display: grid;
+  grid-template-areas: "menu main main main main main";
+  gap: 10px;
+  grid-template-columns: repeat(auto-fill, 20em);
+}
+body .profile-container > div {
+  text-align: center;
+  padding: 20px 0;
+  font-size: 30px;
+}/*# sourceMappingURL=profile.css.map */

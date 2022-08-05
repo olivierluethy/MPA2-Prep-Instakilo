@@ -215,6 +215,7 @@ body {
             display: grid;
             grid-template-columns: auto auto auto auto;
             gap: 10px;
+            // grid-template-columns: repeat(auto-fill, 20em);
             .imgAndUser {
                 text-align: center;
                 display: flex;
@@ -224,6 +225,7 @@ body {
                     width: 2%;
                     margin-right: 3rem;
                     margin-left: 4rem;
+                    cursor: pointer;
                 }
                 .username {
                     text-align: left;
@@ -247,6 +249,7 @@ body {
                 display: flex;
                 font-size: 20px;
                 img {
+                    cursor: pointer;
                     object-fit: contain;
                     width: 2%;
                     margin-right: 3rem;

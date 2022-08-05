@@ -18,4 +18,8 @@ class InstakiloController{
 
         require 'app/Views/main.view.php';
     }
+
+    public function profile(){
+        require 'app/Views/profile.view.php';
+    }
 }
