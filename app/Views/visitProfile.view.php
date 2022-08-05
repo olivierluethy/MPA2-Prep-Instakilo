@@ -18,23 +18,35 @@
     ?>
 
     <div class="visit-container">
-        <div class="item2">
-            <img src="assets/profile.png" alt="">
-        </div>
-        <div class="item3">Name of creator</div>
-        <div class="item4">Number</div>
-        <div class="item5">Number</div>
-        <div class="item6">
-            <textarea name='' id='' cols='85' rows='10'>" . $profile2['beschreibung'] . "</textarea><br>
         <?php
-        // Check if the user is already logged in, if yes then redirect him to index page
-        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-            echo "<button href='follow'>Follow</button>";
-        }else {
-            echo "<button href='login'>Follow</button>";
+        foreach($visit as $visit2){
+            echo "<div class='item2'>
+                <img src='assets/profile.png' alt=''>
+            </div>
+            <div class='item3'>". $visit2['username'] ."</div>
+            <div class='item4'>
+                <h3>" . $visit2['Followers'] . "</h3>
+                <h3>Followers</h3>
+            </div>
+            <div class='item5'>
+                <h3>" . $visit2['Follows'] . "</h3>
+                <h3>Follows</h3>
+            </div>
+            <div class='item6'>";
+                if($visit2['description'] == ""){
+                    echo "<p>Keine Beschreibung</p>";
+                }else{
+                    echo "<textarea name='' id='' cols='85' rows='10'>" . $profile2['description'] . "</textarea><br>";
+                }
+                // Check if the user is already logged in, if yes then redirect him to index page
+                if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+                    echo "<button onclick='follow(" . $visit2['userId'] . ")'>Follow</button>";
+                }else {
+                    echo "<button href='login'>Follow</button>";
+                }
+            echo "</div>";
         }
         ?>
-        </div>
     </div>
 
     <!-- The Modal -->

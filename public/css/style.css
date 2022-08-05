@@ -223,6 +223,7 @@ body main .grid-container .imgAndUser {
   text-align: center;
   display: flex;
   font-size: 20px;
+  cursor: pointer;
 }
 body main .grid-container .imgAndUser img {
   -o-object-fit: contain;

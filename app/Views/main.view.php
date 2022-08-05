@@ -40,7 +40,7 @@ foreach ($posts as $posts2){
                     </div>
                     <div class='post'>
                         <p>". $posts2['titel'] . "</p>
-                        <img src='app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
+                        <img src='data:" . $posts2['imageType'] . ";app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
                     </div>
                     <div class='likeAndDes'>
                         <img src='assets/heart.png' alt=''>

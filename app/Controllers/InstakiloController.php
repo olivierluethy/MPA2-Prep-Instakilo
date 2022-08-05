@@ -49,10 +49,19 @@ class InstakiloController{
         // Initialize the session
         session_start();
 
+        $Instakilo = new Instakilo();
+        $pdo = connectDatabase();
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $id = $_GET['id'];
+
+        $visit = $Instakilo -> visitProfile($id);
+        $visit = $visit -> fetchAll();
+
         require 'app/Views/visitProfile.view.php';
     }
 
-    public function follow($id){
+    public function follow(){
         // Initialize the session
         session_start();
 
@@ -60,8 +69,10 @@ class InstakiloController{
         $pdo = connectDatabase();
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        /* Get most liked posts */
-        $posts = $Instakilo -> posts();
-        $posts = $posts -> fetchAll();
+        $id = $_GET['id'];
+
+        $Instakilo->follow(/* User der gefolgt wird */$id, /* Wer folgen den User folgen will */$_SESSION['id']);
+
+        header('Location: http://localhost/Instakilo/');
     }
 }

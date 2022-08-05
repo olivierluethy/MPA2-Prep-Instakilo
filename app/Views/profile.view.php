@@ -59,7 +59,7 @@
                     echo "
                     <div class='follows'>
                             <h3>" . $follows2['Follows'] . "</h3>
-                            <h3>Followers</h3>
+                            <h3>Follows</h3>
                         </div>
                     ";
                 }?>
@@ -68,7 +68,7 @@
                 foreach($profile as $profile2){
                     echo "
                     <div class='description'>
-                        <textarea name='' id='' cols='85' rows='25'>" . $profile2['beschreibung'] . "</textarea>
+                        <textarea name='' id='' cols='85' rows='25'>" . $profile2['description'] . "</textarea>
                     </div>
                     ";
                 }

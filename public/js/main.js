@@ -10,6 +10,14 @@ function backToMain() {
     location.href = "home";
 }
 
+function visitProfile(id) {
+    location.href = "visitProfile?id=" + id;
+}
+
+function follow(id) {
+    location.href = "follow?id=" + id;
+}
+
 // Get the modal
 var modal = document.getElementById("myModal");
 
