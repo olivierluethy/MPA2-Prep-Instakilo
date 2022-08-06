@@ -1,7 +1,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="http://192.168.100.57:3000/Olivier_Luethy/Constant_Framework.git">
+  <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git">
     <img src="assets/favicon.ico" alt="Logo" width="80" height="80">
   </a>
 
@@ -27,20 +27,41 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#über-das-projekt">Über das Projekt</a>
     </li>
     <li>
-      <a href="#installation-guide">Installation Guide</a>
+      <a href="#möglichkeiten">Möglichkeiten</a>
+    </li>
+    <li>
+      <a href="#installation">Installation</a>
     </li>
   </ol>
 </details>
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## Über das Projekt
 Wie oben schon beschrieben, dient dieses Projekt als Vorbereitung auf die Mini PA, die am 8. August stattfinden wird. Dieses Projekt lehnt sich an die Aufgabenstellung der Mini PA.
 
+<!-- Possibilities -->
+## Möglichkeiten
+Natürlich kann diese App nicht alles was Instagram selber zu bieten hat. Grob soll die App folgendes können:
+- Wenn Benutzer <strong>NICHT</strong> eingeloggt ist:
+ 1. Kann nur <strong>öffentliche</strong> Bilder sehen
+
+Wie man somit sieht, lohnt es sich kaum kein Konto zu haben ;)
+- Wenn Benutzer <strong>EINGELOGGT</strong> ist:
+ 1. Kann Bilder hochladen
+ 2. Sieht Bilder von Creators die er folgt
+ 3. Kann Creators folgen
+ 4. Kann unter seinem Profil folgendes noch ändern:
+  1. Passwort ändern
+  2. Benutzername ändern
+  3. Hochgeladene Bilder bearbeiten
+  4. Beschreibung ändern
+
+
 <!-- INSTALLATION -->
-## Installation Guide
+## Installation
 1. Als erstes müssen Sie git auf Ihrem lokalen Computer installieren. Dazu müssen Sie diese [Website] (https://git-scm.com/downloads) besuchen.
 2. Suchen Sie in Ihrem Windows-Explorer nach einem geeigneten Speicherort für das Projekt
 3. Klicken Sie mit der rechten Maustaste auf den Ordner oder Ort und dann auf "Git Bash Here".
@@ -55,4 +76,4 @@ http://localhost/Instakilo/
 ```
 
 <!-- DOCUMENTATION -->
-Die Dokumentation zu diesem Framework finden Sie im Ordner <strong>doc<strong>!
+Die Dokumentation zu diesem Framework finden Sie im Ordner <strong>doc</strong>!
