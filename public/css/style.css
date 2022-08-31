@@ -249,6 +249,10 @@ body main .grid-container .post p {
   text-align: center;
   font-size: 15px;
 }
+body main .grid-container .post img {
+  max-width: 360px;
+  max-height: 200px;
+}
 body main .grid-container .likeAndDes {
   text-align: center;
   display: flex;

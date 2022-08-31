@@ -18,6 +18,10 @@ function follow(id) {
     location.href = "follow?id=" + id;
 }
 
+function unfollow(id) {
+    location.href = "unfollow?id=" + id;
+}
+
 // Get the modal
 var modal = document.getElementById("myModal");
 

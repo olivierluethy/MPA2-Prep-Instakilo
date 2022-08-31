@@ -2,41 +2,41 @@
 
 class ImageUploadController{
     public function index(){
-        $imageUpload = new ImageUpload();
 
         // Initialize the session
         session_start();
 
-        require_once 'app/Views/login/config.php';
+		if(!isset($_SESSION["loggedin"]) || $_SESSION["loggedin"] !== true){
+			header('Location: login');
+		}
 
+		$imageUpload = new ImageUpload();
         $pdo = connectDatabase();
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             /* For Image Upload */
             if(count($_FILES) > 0) {
                 if(is_uploaded_file($_FILES['filename']['tmp_name'])) {
-                    $imgData =addslashes(file_get_contents($_FILES['filename']['tmp_name']));
+                    $imgData = file_get_contents($_FILES['filename']['tmp_name']);
                     $imageProperties = getimageSize($_FILES['filename']['tmp_name']);
 
-                    $public = false;
+					$titel = $_POST['titel'];
+					$beschreibung = $_POST['beschreibung'];
+					$datum = $_POST['datum'];
+					$ort = $_POST['ort'];
+					$oeffentlich = $_POST['oeffentlich'];
+					if ($oeffentlich == 'Yes') {
+						$oeffentlich = 1;
+					}else {
+						$oeffentlich = 0;
+					}
 
-                    $title = $_POST['title'];
-                    $beschreibung = $_POST['beschreibung'];
-                    $datum = $_POST['datum'];
-                    $ort = $_POST['ort'];
-                    $oeffentlich = $_POST['oeffentlich'];
+            		$imageUpload->uploadImage($titel, $beschreibung, $datum, $ort, $oeffentlich, $imageProperties['mime'], $imgData, $_SESSION['id']);
 
-                    if ($oeffentlich == 'Yes') {
-                        $public = 1;
-                    }else {
-                        $public = 0;
-                    }
-                
-                    $imageUpload->uploadImage($title, $beschreibung, $datum, $ort, $public, $imageProperties['mime'], $imgData, $_SESSION['id']);
-
-                    header('Location: http://localhost/Instakilo/');
-                }
-            }
-        }
-    }
+					header("location: home");
+				}
+			}
+		}
+	}
 }

@@ -1,13 +1,16 @@
 <?php
 $postsCounter = 0;
-// $followedPostsCounter = 0;
-
-foreach ($posts as $posts2){
-    $postsCounter++;
+$publicPostsCounter = 0;
+// Check if the user is already logged in, if yes then redirect him to index page
+if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+    foreach ($posts as $posts2){
+        $postsCounter++;
+    }
+}else {
+    foreach ($publicPosts as $publicPosts2){
+        $publicPostsCounter++;
+    }
 }
-// foreach ($followedPosts as $followedPosts2){
-//     $followedPostsCounter++;
-// }
 ?>
 
 <!DOCTYPE html>
@@ -29,26 +32,50 @@ foreach ($posts as $posts2){
     ?>
     <main>
         <?php
-        if($postsCounter > 0){
+        // Check if the user is already logged in, if yes then redirect him to index page
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+            if($postsCounter > 0){
+                echo "<div class='grid-container'>";
+                foreach ($posts as $posts2){
+                    echo "<div>";
+                        echo "
+                        <div onclick='visitProfile(" . $posts2['fk_userId'] . ")' class='imgAndUser'>
+                            <img src='assets/profile.png' alt=''>
+                            <p class='username'>" . $posts2['username'] . "</p>
+                        </div>
+                        <div class='post'>
+                            <p>". $posts2['titel'] . "</p>
+                            <img src='data:" . $posts2['imageType'] . ";base64, ".base64_encode($posts2['imageData']). "'/>
+                        </div>
+                        <div class='likeAndDes'>
+                            <img src='assets/heart.png' alt=''>
+                            <p>". $posts2['beschreibung'] . "</p>
+                        </div>
+                    </div>";
+                }
+            }else {
+                echo "<h1>Derzeit noch keine Beiträge</h1>";
+            }
+        } else if ($publicPostsCounter > 0) {
             echo "<div class='grid-container'>";
-            foreach ($posts as $posts2){
+            foreach ($publicPosts as $publicPosts2){
                 echo "<div>";
                     echo "
-                    <div onclick='visitProfile(" . $posts2['fk_userId'] . ")' class='imgAndUser'>
+                    <div onclick='visitProfile(" . $publicPosts2['fk_userId'] . ")' class='imgAndUser'>
                         <img src='assets/profile.png' alt=''>
-                        <p class='username'>" . $posts2['username'] . "</p>
+                        <p class='username'>" . $publicPosts2['username'] . "</p>
                     </div>
                     <div class='post'>
-                        <p>". $posts2['titel'] . "</p>
-                        <img src='data:" . $posts2['imageType'] . ";app\Views\imageView.php?image_id=". $posts2['imageId'] ."' />
+                        <p>". $publicPosts2['titel'] . "</p>
+                        <img src='data:" . $publicPosts2['imageType'] . ";base64, ".base64_encode($publicPosts2['imageData']). "'/>
                     </div>
                     <div class='likeAndDes'>
                         <img src='assets/heart.png' alt=''>
-                        <p>". $posts2['beschreibung'] . "</p>
+                        <p>". $publicPosts2['beschreibung'] . "</p>
                     </div>
-                </div>";
+                </div>";  
             }
-        }else {
+        } else {
             echo "<h1>Derzeit noch keine Beiträge</h1>";
         }
         ?>
@@ -68,7 +95,7 @@ foreach ($posts as $posts2){
                     <label for="file">Choose File:</label><br>
                     <input type="file" id="myFile" name="filename"><br>
                     <label for="title">Titel:</label><br>
-                    <input type="text" id="title" name="title" placeholder="Bitte Titel eingeben"><br><br>
+                    <input type="text" id="title" name="titel" placeholder="Bitte Titel eingeben"><br><br>
                     <label for="beschreibung">Beschreibung:</label><br>
                     <textarea id="story" name="beschreibung" rows="5" cols="71"
                         placeholder="Schreiben sie eine Beschreibung"></textarea><br><br>

@@ -25,7 +25,7 @@ CREATE TABLE users (
 CREATE TABLE followers (
   followId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
   userId INT NOT NULL, /* User der gefolgt wird */
-  followsId INT NOT NULL /* Werd den User folgen will */
+  followsId INT NOT NULL /* Wer den User folgen will */
 );
 
 --
@@ -48,5 +48,5 @@ CREATE TABLE images (
 
 /* Beispiel Daten */
 INSERT INTO `users` (`userId`, `username`, `email`, `password`, `description`, `imageType`, `imageData`, `created_at`) VALUES
-(1, 'LE FOU', 'olivier@kauz.ch', '$2y$10$y0xUU6lSEjcHPsx51kXfReInLBFC/6YgrXtjJM.mqLfykeR9eALJq', NULL, '', '', '2022-08-05 13:54:26'),
-(2, 'TestFaktor', 'test@test', '$2y$10$H6NDgXrwP82NF99WPDDwJeMy1FZTnsIVYcMc.dCKSSTFoILukq.Am', NULL, '', '', '2022-08-05 13:55:59');
+(1, 'LE FOU', 'olivier@kauz.ch', '$2y$10$LbYMnWuawyliVSj64qarwudXRWDLy1HvjN4udgbHBszHZXcmetU5m', NULL, '', '', '2022-08-05 13:54:26'), /* Passwort: kauz.git */
+(2, 'TestFaktor', 'test@test', '$2y$10$LbYMnWuawyliVSj64qarwudXRWDLy1HvjN4udgbHBszHZXcmetU5m', NULL, '', '', '2022-08-05 13:55:59');

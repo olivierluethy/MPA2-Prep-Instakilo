@@ -9,12 +9,16 @@ class InstakiloController{
         $pdo = connectDatabase();
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-        /* Get posts */
-        $posts = $Instakilo -> posts($_SESSION['id']);
-        $posts = $posts -> fetchAll();
-
-        // $followedPosts = $Instakilo -> followedPosts();
-        // $followedPosts = $followedPosts -> fetchAll();
+        // Check if the user is already logged in, if yes then redirect him to index page
+        if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+            /* Show posts the user follows and public to */
+            $posts = $Instakilo -> posts();
+            $posts = $posts -> fetchAll();
+        }else {
+            /* Show public images */
+            $publicPosts = $Instakilo -> publicPosts();
+            $publicPosts = $publicPosts -> fetchAll();
+        }
 
         require 'app/Views/main.view.php';
     }
@@ -55,8 +59,20 @@ class InstakiloController{
 
         $id = $_GET['id'];
 
+        $profile = $Instakilo -> profile($id);
+        $profile = $profile -> fetchAll();
+
         $visit = $Instakilo -> visitProfile($id);
         $visit = $visit -> fetchAll();
+
+        $followers = $Instakilo -> followers($id);
+        $followers = $followers -> fetchAll();
+
+        $follows = $Instakilo -> follows($id);
+        $follows = $follows -> fetchAll();
+
+        $alreadyFollows = $Instakilo -> alreadyFollows($id, $_SESSION['id']);
+        $alreadyFollows = $alreadyFollows -> fetchAll();
 
         require 'app/Views/visitProfile.view.php';
     }
@@ -73,6 +89,21 @@ class InstakiloController{
 
         $Instakilo->follow(/* User der gefolgt wird */$id, /* Wer folgen den User folgen will */$_SESSION['id']);
 
-        header('Location: http://localhost/Instakilo/');
+        header('Location: http://localhost/Instakilo/visitProfile?id='.$id);
+    }
+
+    public function unfollow(){
+        // Initialize the session
+        session_start();
+
+        $Instakilo = new Instakilo();
+        $pdo = connectDatabase();
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+        $id = $_GET['id'];
+
+        $Instakilo->unfollow(/* User der gefolgt wird */$id, /* Wer folgen den User folgen will */$_SESSION['id']);
+
+        header('Location: http://localhost/Instakilo/visitProfile?id='.$id);
     }
 }
