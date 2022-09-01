@@ -12,7 +12,7 @@ class InstakiloController{
         // Check if the user is already logged in, if yes then redirect him to index page
         if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             /* Show posts the user follows and public to */
-            $posts = $Instakilo -> posts();
+            $posts = $Instakilo -> posts($_SESSION['id']);
             $posts = $posts -> fetchAll();
         }else {
             /* Show public images */

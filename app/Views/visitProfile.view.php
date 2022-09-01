@@ -30,7 +30,7 @@ foreach($alreadyFollows as $alreadyFollows2){
             echo "<div class='item2'>
                 <img src='assets/profile.png' alt=''>
             </div>
-            <div class='item3'>". $profile2['username'] ."</div>";
+            <div class='item3'><h2>". $profile2['username'] ."</h2></div>";
         }
         foreach($followers as $followers2){
             echo "
@@ -67,7 +67,7 @@ foreach($alreadyFollows as $alreadyFollows2){
                             }
                         }
                     }else {
-                        echo "<button href='login'>Follow</button>";
+                        echo "<button onclick='goToLogin()'>Follow</button>";
                     }
                 echo "</div>";
         }

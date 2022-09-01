@@ -35,6 +35,9 @@
     <li>
       <a href="#installation">Installation</a>
     </li>
+    <li>
+      <a href="#verwendete-quellen">Verwendete Quellen</a>
+    </li>
   </ol>
 </details>
 
@@ -47,6 +50,7 @@ Wie oben schon beschrieben, dient dieses Projekt als Vorbereitung auf die Mini P
 Natürlich kann diese App nicht alles was Instagram selber zu bieten hat. Grob soll die App folgendes können:
 - Wenn Benutzer <strong>NICHT</strong> eingeloggt ist:
  1. Kann nur <strong>öffentliche</strong> Bilder sehen
+ <strong><u>Die Ausgabe der Bilder wird nach den meisten Likes eines öffentlichen Bildes sortiert</u></strong>
 
 Wie man somit sieht, lohnt es sich kaum kein Konto zu haben ;)
 - Wenn Benutzer <strong>EINGELOGGT</strong> ist:
@@ -58,6 +62,7 @@ Wie man somit sieht, lohnt es sich kaum kein Konto zu haben ;)
   2. Benutzername ändern
   3. Hochgeladene Bilder bearbeiten
   4. Beschreibung ändern
+<strong><u>Die Ausgabe der Bilder wird nach den meisten Likes einer gefolgten Person sortiert</u><strong>
 
 
 <!-- INSTALLATION -->
@@ -74,6 +79,10 @@ Wie man somit sieht, lohnt es sich kaum kein Konto zu haben ;)
 ```sh
 http://localhost/Instakilo/
 ```
+<!-- Verwendete Quellen-->
+## Verwendete Quellen
+Insert variable into Header Location PHP:
+https://stackoverflow.com/questions/9773152/insert-variable-into-header-location-php
 
 <!-- DOCUMENTATION -->
 Die Dokumentation zu diesem Framework finden Sie im Ordner <strong>doc</strong>!

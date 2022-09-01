@@ -17,9 +17,11 @@ class Instakilo
     }
 
     /* When user IS logged in - Show first posts from other people you follow and then public */
-    public function posts(){
+    public function posts($id){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username FROM images
-        INNER JOIN users ON users.userId = images.fk_userId');
+        INNER JOIN users ON users.userId = images.fk_userId
+        WHERE images.fk_userId IN (SELECT followers.userId FROM followers WHERE followers.followsId = :id) OR images.fk_userId = :id OR images.oeffentlich = 1 ORDER BY images.likes DESC');
+        $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
         return $statement;
     }
