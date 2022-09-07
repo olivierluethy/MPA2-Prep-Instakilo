@@ -224,30 +224,34 @@ body main .noFollowsText {
 body main .grid-container {
   display: grid;
   grid-template-columns: auto auto auto auto;
-  gap: 10px;
+  gap: 50px 140px;
+  margin-left: 4rem;
+  grid-template-columns: repeat(auto-fill, 20em);
 }
-body main .grid-container .imgAndUser {
+body main .grid-container .profile {
+  width: 100%;
+}
+body main .grid-container .profile .imgAndUser {
   text-align: center;
   display: flex;
   font-size: 20px;
-  cursor: pointer;
 }
-body main .grid-container .imgAndUser img {
+body main .grid-container .profile .imgAndUser img {
   -o-object-fit: contain;
      object-fit: contain;
-  width: 2%;
-  margin-right: 3rem;
-  margin-left: 4rem;
+  width: 18%;
+  margin-left: 2rem;
   cursor: pointer;
 }
-body main .grid-container .imgAndUser .username {
-  text-align: left;
+body main .grid-container .profile .imgAndUser .username {
   font-size: 25px;
   font-weight: bold;
+  margin-left: 2rem;
+  cursor: pointer;
 }
 body main .grid-container .post {
   max-width: 360px;
-  max-height: 490px;
+  height: 40vh;
   border: 1px solid black;
   border-radius: 30px;
   box-shadow: 5px 5px 15px 5px #BAACB3;
@@ -257,8 +261,14 @@ body main .grid-container .post p {
   font-size: 15px;
 }
 body main .grid-container .post img {
-  max-width: 360px;
-  max-height: 200px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  max-width: 319px;
+  max-height: 300px;
+  transition-duration: 0.4s;
+}
+body main .grid-container .post img:hover {
+  transform: scale(3);
 }
 body main .grid-container .likeAndDes {
   text-align: center;
@@ -269,16 +279,18 @@ body main .grid-container .likeAndDes img {
   cursor: pointer;
   -o-object-fit: contain;
      object-fit: contain;
-  width: 2%;
-  margin-right: 3rem;
-  margin-left: 4rem;
+  width: 18%;
+  margin-left: 2rem;
+}
+body main .grid-container .likeAndDes .desc {
+  font-size: 20px;
+  margin-left: 2rem;
 }
 body main .grid-container > div {
   background-color: #FFFFFF;
   text-align: center;
   font-size: 30px;
   align-items: center;
-  margin-right: -100rem;
 }
 body footer {
   background-color: aqua;

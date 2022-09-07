@@ -223,29 +223,32 @@ body {
         .grid-container {
             display: grid;
             grid-template-columns: auto auto auto auto;
-            gap: 10px;
-            // grid-template-columns: repeat(auto-fill, 20em);
-            .imgAndUser {
-                text-align: center;
-                display: flex;
-                font-size: 20px;
-                cursor: pointer;
-                img {
-                    object-fit: contain;
-                    width: 2%;
-                    margin-right: 3rem;
-                    margin-left: 4rem;
-                    cursor: pointer;
-                }
-                .username {
-                    text-align: left;
-                    font-size: 25px;
-                    font-weight: bold;
+            gap: 50px 140px;
+            margin-left: 4rem;
+            grid-template-columns: repeat(auto-fill, 20em);
+            .profile {
+                width: 100%;
+                .imgAndUser {
+                    text-align: center;
+                    display: flex;
+                    font-size: 20px;
+                    img {
+                        object-fit: contain;
+                        width: 18%;
+                        margin-left: 2rem;
+                        cursor: pointer;
+                    }
+                    .username {
+                        font-size: 25px;
+                        font-weight: bold;
+                        margin-left: 2rem;
+                        cursor: pointer;
+                    }
                 }
             }
             .post {
                 max-width: 360px;
-                max-height: 490px;
+                height: 40vh;
                 border: 1px solid black;
                 border-radius: 30px;
                 box-shadow: 5px 5px 15px 5px #BAACB3;
@@ -254,8 +257,13 @@ body {
                     font-size: 15px;
                 }
                 img {
-                    max-width: 360px;
-                    max-height: 200px;
+                    object-fit: contain;
+                    max-width: 319px;
+                    max-height: 300px;
+                    transition-duration: 0.4s;
+                    &:hover {
+                        transform: scale(3.0);
+                    }
                 }
             }
             .likeAndDes {
@@ -265,9 +273,12 @@ body {
                 img {
                     cursor: pointer;
                     object-fit: contain;
-                    width: 2%;
-                    margin-right: 3rem;
-                    margin-left: 4rem;
+                    width: 18%;
+                    margin-left: 2rem;
+                }
+                .desc {
+                    font-size: 20px;
+                    margin-left: 2rem;
                 }
             }
         }
@@ -276,7 +287,6 @@ body {
             text-align: center;
             font-size: 30px;
             align-items: center;
-            margin-right: -100rem;
         }
     }
     footer {
@@ -300,5 +310,3 @@ button {
         cursor: pointer;
     }
 }
-
-;

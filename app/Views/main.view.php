@@ -1,18 +1,3 @@
-<?php
-$postsCounter = 0;
-$publicPostsCounter = 0;
-// Check if the user is already logged in, if yes then redirect him to index page
-if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-    foreach ($posts as $posts2){
-        $postsCounter++;
-    }
-}else {
-    foreach ($publicPosts as $publicPosts2){
-        $publicPostsCounter++;
-    }
-}
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -32,49 +17,85 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
     ?>
     <main>
         <?php
-        // Check if the user is already logged in, if yes then redirect him to index page
+        // Überprüft ob der Benutzer eingeloggt ist oder nicht
         if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-            if($postsCounter > 0){
-                echo "<div class='grid-container'>";
-                foreach ($posts as $posts2){
-                    echo "<div>";
-                        echo "
-                        <div onclick='visitProfile(" . $posts2['fk_userId'] . ")' class='imgAndUser'>
-                            <img src='assets/profile.png' alt=''>
-                            <p class='username'>" . $posts2['username'] . "</p>
-                        </div>
-                        <div class='post'>
-                            <p>". $posts2['titel'] . "</p>
-                            <img src='data:" . $posts2['imageType'] . ";base64, ".base64_encode($posts2['imageData']). "'/>
-                        </div>
-                        <div class='likeAndDes'>
-                            <img src='assets/heart.png' alt=''>
-                            <p>". $posts2['beschreibung'] . "</p>
-                        </div>
-                    </div>";
+            if($allPostsCounter > 0){
+				// Alle gelikten Posts
+                if($alreadyLikedPostsCounter > 0){
+                    echo "<div class='grid-container'>";
+                    foreach ($alreadyLikedPosts as $alreadyLikedPosts2){
+                        echo 
+						"<div>
+							<div class='profile'>
+								<div class='imgAndUser'>
+									<img src='assets/profile.png' alt=''>
+									<p onclick='visitProfile(" . $alreadyLikedPosts2['images.fk_userId'] . ")' class='username' title='Das Profil von ". $alreadyLikedPosts2['images.username'] ." anschauen'>" . $alreadyLikedPosts2['images.username'] . "</p>
+								</div>
+							</div>
+							<div class='post'>
+								<p>". $alreadyLikedPosts2['images.titel'] . "</p>
+								<img src='data:" . $alreadyLikedPosts2['images.imageType'] . ";base64, ".base64_encode($alreadyLikedPosts2['imageData']). "'/>
+							</div>
+							<div class='likeAndDes'>
+								<img onclick='likePost(" . $alreadyLikedPosts2['images.imageId'] . ")' src='assets/heart.png' alt=''>
+								<p>" . $alreadyLikedPosts2['Likes'] . "</p>
+								<p class='desc'>". $posts2['images.beschreibung'] . "</p>
+							</div>
+						</div>";
+                    }
                 }
-            }else {
+			}
+            /* !! Bei unlikedPosts gibt es noch einen Fehler !! */
+            if($unlikedPostsCounter > 0){
+				// Ungelikte Posts
+                echo "<div class='grid-container'>";
+                foreach ($unlikedPosts as $unlikedPosts2){
+					echo 
+					"<div>
+						<div class='profile'>
+							<div class='imgAndUser'>
+								<img src='assets/profile.png' alt=''>
+								<p onclick='visitProfile(" . $unlikedPosts2['fk_userId'] . ")' class='username' title='Das Profil von ". $unlikedPosts2['username'] ." anschauen'>" . $unlikedPosts2['username'] . "</p>
+							</div>
+						</div>
+						<div class='post'>
+							<p>". $unlikedPosts2['titel'] . "</p>
+							<img src='data:" . $unlikedPosts2['imageType'] . ";base64, ".base64_encode($unlikedPosts2['imageData']). "'/>
+						</div>
+						<div class='likeAndDes'>
+							<img onclick='likePost(" . $unlikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
+							<p>" . $unlikedPosts2['Likes'] . "</p>
+							<p class='desc'>". $unlikedPosts2['beschreibung'] . "</p>
+						</div>
+					</div>";
+                }
+            } else {
                 echo "<h1>Derzeit noch keine Beiträge</h1>";
             }
-        } else if ($publicPostsCounter > 0) {
+        }
+        /* Falls man nicht eingeloggt ist */ 
+        else if ($publicPostsCounter > 0) {
             echo "<div class='grid-container'>";
-            foreach ($publicPosts as $publicPosts2){
-                echo "<div>";
-                    echo "
-                    <div onclick='visitProfile(" . $publicPosts2['fk_userId'] . ")' class='imgAndUser'>
-                        <img src='assets/profile.png' alt=''>
-                        <p class='username'>" . $publicPosts2['username'] . "</p>
-                    </div>
-                    <div class='post'>
-                        <p>". $publicPosts2['titel'] . "</p>
-                        <img src='data:" . $publicPosts2['imageType'] . ";base64, ".base64_encode($publicPosts2['imageData']). "'/>
-                    </div>
-                    <div class='likeAndDes'>
-                        <img src='assets/heart.png' alt=''>
-                        <p>". $publicPosts2['beschreibung'] . "</p>
-                    </div>
-                </div>";  
-            }
+                foreach ($publicPosts as $publicPosts2){
+                    echo 
+					"<div>
+						<div class='profile'>
+							<div class='imgAndUser'>
+								<img src='assets/profile.png' alt=''>
+								<p onclick='visitProfile(" . $publicPosts2['fk_userId'] . ")' class='username' title='Das Profil von ". $publicPosts2['username'] ." anschauen'>" . $publicPosts2['username'] . "</p>
+							</div>
+						</div>
+						<div class='post'>
+							<p>". $publicPosts2['titel'] . "</p>
+							<img src='data:" . $publicPosts2['imageType'] . ";base64, ".base64_encode($publicPosts2['imageData']). "'/>
+						</div>
+						<div class='likeAndDes'>
+							<img onclick='goToLogin()' src='assets/heart.png' alt=''>
+							<p>" . $publicPosts2['likes'] . "</p>
+							<p class='desc'>". $publicPosts2['beschreibung'] . "</p>
+						</div>
+					</div>";
+                }
         } else {
             echo "<h1>Derzeit noch keine Beiträge</h1>";
         }
@@ -82,36 +103,8 @@ if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
         </div>
     </main>
 
-    <!-- The Modal -->
-    <div id="myModal" class="modal">
-        <!-- Modal content -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close">&times;</span>
-                <h2>Upload Image</h2>
-            </div>
-            <div class="modal-body">
-                <form action="imageUpload" method="POST" enctype="multipart/form-data"><br>
-                    <label for="file">Choose File:</label><br>
-                    <input type="file" id="myFile" name="filename"><br>
-                    <label for="title">Titel:</label><br>
-                    <input type="text" id="title" name="titel" placeholder="Bitte Titel eingeben"><br><br>
-                    <label for="beschreibung">Beschreibung:</label><br>
-                    <textarea id="story" name="beschreibung" rows="5" cols="71"
-                        placeholder="Schreiben sie eine Beschreibung"></textarea><br><br>
-                    <label for="datum">Datum:</label><br>
-                    <input type="date" id="datum" name="datum"><br><br>
-                    <label for="ort">Ort:</label><br>
-                    <input type="text" id="ort" name="ort" placeholder="Bitte Ort eingeben"><br><br>
-                    <label for="oeffentlich">Öffentlich:</label><br>
-                    <input type="checkbox" id="oeffentlich" name="oeffentlich" value="Yes"><br><br>
-                    <input type="submit" value="Hochladen">
-                </form>
-            </div>
-        </div>
-    </div>
-
     <?php
+    include("imageUpload.view.php");
     include("footer.view.php");
     ?>
     <script src="public/js/main.js"></script>

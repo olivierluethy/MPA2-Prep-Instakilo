@@ -12,7 +12,6 @@ CREATE TABLE users (
   email VARCHAR(50) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
   description VARCHAR(255),
-  followers INT,
   imageType varchar(255) NOT NULL,
   imageData longblob NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -39,11 +38,22 @@ CREATE TABLE images (
   datum DATE NOT NULL,
 	ort VARCHAR(50) NOT NULL,
   oeffentlich TINYINT(1) NOT NULL,
-  likes INT,
   imageType varchar(255) NOT NULL,
   imageData longblob NOT NULL,
 	fk_userId INT NOT NULL,
-	FOREIGN KEY (fk_userId) REFERENCES users(userid)
+	FOREIGN KEY (fk_userId) REFERENCES users(userId)
+);
+
+--
+-- Tabelle 'Likes'
+--
+
+CREATE TABLE likes (
+  likeId INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  fk_imageId INT NOT NULL, /* Die Id des Bildes */
+  fk_userId INT NOT NULL, /* Wer das Bild liken will */
+  FOREIGN KEY (fk_imageId) REFERENCES images(imageId),
+  FOREIGN KEY (fk_userId) REFERENCES users(userId)
 );
 
 /* Beispiel Daten */

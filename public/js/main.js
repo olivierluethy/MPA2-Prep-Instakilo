@@ -22,6 +22,10 @@ function unfollow(id) {
     location.href = "unfollow?id=" + id;
 }
 
+function likePost(id) {
+    location.href = "likePost?id=" + id;
+}
+
 // Get the modal
 var modal = document.getElementById("myModal");
 

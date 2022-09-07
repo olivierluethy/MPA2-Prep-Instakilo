@@ -11,6 +11,8 @@ $routes = [
 	'follow' => 'InstakiloController@follow',
 	'unfollow' => 'InstakiloController@unfollow',
 
+	'likePost' => 'InstakiloController@likePost',
+
 	'imageUpload' => 'ImageUploadController@index',
 
 	/* Login Page */
