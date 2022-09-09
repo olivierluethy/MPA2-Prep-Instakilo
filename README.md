@@ -5,7 +5,7 @@
     <img src="assets/favicon.ico" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Instakilo</h3>
+  <h3 align="center">MPA Prep Instakilo</h3>
   <h4 align="center">Ein Instagram Klon. Dient als Vorbereitung auf die Mini PA.</h4>
 
   <p align="center">
@@ -30,7 +30,7 @@
       <a href="#über-das-projekt">Über das Projekt</a>
     </li>
     <li>
-      <a href="#möglichkeiten">Möglichkeiten</a>
+      <a href="#was-soll-die-applikation-können?">Was soll die Applikation können?</a>
     </li>
     <li>
       <a href="#installation">Installation</a>
