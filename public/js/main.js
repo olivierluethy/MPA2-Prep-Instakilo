@@ -26,6 +26,10 @@ function likePost(id) {
     location.href = "likePost?id=" + id;
 }
 
+function unlikePost(id) {
+    location.href = "unlikePost?id=" + id;
+}
+
 // Get the modal
 var modal = document.getElementById("myModal");
 

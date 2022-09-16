@@ -38,7 +38,7 @@
 								<img src='data:" . $alreadyLikedPosts2['imageType'] . ";base64, ".base64_encode($alreadyLikedPosts2['imageData']). "'/>
 							</div>
 							<div class='likeAndDes'>
-								<img onclick='likePost(" . $alreadyLikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
+								<img onclick='unlikePost(" . $alreadyLikedPosts2['imageId'] . ")' src='assets/heart-red.png' alt=''>
 								<p>" . $alreadyLikedPosts2['likes'] . "</p>
 								<p class='desc'>". $alreadyLikedPosts2['beschreibung'] . "</p>
 							</div>
@@ -46,7 +46,6 @@
                     }
                 }
 			}
-            /* !! Bei unlikedPosts gibt es noch einen Fehler !! */
             if($unlikedPostsCounter > 0){
 				// Ungelikte Posts
                 echo "<div class='grid-container'>";

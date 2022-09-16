@@ -25,51 +25,25 @@ class Instakilo
         HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0');
         $statement->execute();
         return $statement;
-
-        /* ---------------- Eintrag mit 0 likes und alle restlichen Columns sind gleich NULL, verstehe nicht wieso? --------------*/
-        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
-        // INNER JOIN likes ON likes.fk_imageId = images.imageId
-        // INNER JOIN users ON users.userId = images.fk_userId
-        // WHERE images.oeffentlich = 1
-        // HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0;
-
-        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username FROM images
-        // INNER JOIN users ON users.userId = images.fk_userId
-        // WHERE images.oeffentlich = 1 OR images.imageId IN (SELECT likes.fk_imageId FROM likes)
-
-        // $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
-        // INNER JOIN likes ON likes.fk_imageId = images.imageId 
-        // INNER JOIN users ON users.userId = images.fk_userId
-        // WHERE images.oeffentlich = 1
-        // HAVING COUNT(likes.likeId) >= 0 AND users.username != ""');
-        // $statement->execute();
-        // return $statement;
-
-        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
-        // INNER JOIN likes ON likes.fk_imageId = images.imageId
-        // INNER JOIN users ON users.userId = images.fk_userId
-        // WHERE images.oeffentlich = 1 AND user.username NOT NULL
-        // HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0;
     }
 
-    /* When user IS logged in - Show first posts from other people you follow and then public posts - Show already liked posts */
+    /* When user IS logged in - Show first private posts from people you follow and and then public posts - Show already liked posts */
     public function alreadyLikedPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        WHERE images.fk_userId IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)
-        HAVING users.username != NULL');
+        WHERE :liked IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked) AND images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
         return $statement;
     }
 
-    /* When user IS logged in - Show first posts from other people you follow and then public - Not liked posts */
+    /* When user IS logged in - Show first private posts from people you follow and and then public posts - Not liked posts */
     public function unlikedPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        WHERE users.userId NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)');
+        WHERE :liked NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked) AND images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
         return $statement;
@@ -77,7 +51,7 @@ class Instakilo
 
     /* If someone wants to like a post */
     public function likePost($id){
-        $statement = $this->db->prepare('INSERT INTO likes (fk_imageId, likerId) VALUES (:imageId, :liker)');
+        $statement = $this->db->prepare('INSERT INTO likes (fk_imageId, fk_userId) VALUES (:imageId, :liker)');
         $statement->bindParam(':imageId', $id, PDO::PARAM_STR); /* Von wem das Bild kommt */
         $statement->bindParam(':liker', $_SESSION['id'], PDO::PARAM_STR); /* Wer das Bild liken will */
         $statement->execute();
@@ -86,7 +60,7 @@ class Instakilo
 
     /* If somene liked a post so he cann also remove the like */
     public function unlikePost($id){
-        $statement = $this->db->prepare('DELETE FROM likes WHERE likes.fk_imageId = :imageId AND likes.likerId = :liker');
+        $statement = $this->db->prepare('DELETE FROM likes WHERE likes.fk_imageId = :imageId AND likes.fk_userId = :liker');
         $statement->bindParam(':imageId', $id, PDO::PARAM_STR); /* Von wem das Bild kommt */
         $statement->bindParam(':liker', $_SESSION['id'], PDO::PARAM_STR); /* Wer das Bild nicht mehr liken will */
         $statement->execute();
