@@ -5,25 +5,23 @@ $routes = [
 	/* Home Page */
 	'' => 'InstakiloController@index',
 	'home' => 'InstakiloController@index',
-	'profile' => 'InstakiloController@profile',
-	'visitProfile' => 'InstakiloController@visitProfile',
 
+	'profile' => 'InstakiloController@profile',
+
+	/* Check someone else out, follow and unfollow */
+	'visitProfile' => 'InstakiloController@visitProfile',
 	'follow' => 'InstakiloController@follow',
 	'unfollow' => 'InstakiloController@unfollow',
 
+	/* Like Post */
 	'likePost' => 'InstakiloController@likePost',
-
+	'unlikePost' => 'InstakiloController@unlikePost',
 	'imageUpload' => 'ImageUploadController@index',
 
 	/* Login Page */
 	'login' => 'LoginController@login',
 	'register' => 'LoginController@register',
 	'logout' => 'LoginController@logout',
-
-	'view' => 'FrameworkController@index',
-	'create' => 'FrameworkController@create',
-	'update' => 'FrameworkController@update',
-	'delete' => 'FrameworkController@delete',
 ];
 
 $db = [

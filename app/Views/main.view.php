@@ -91,7 +91,7 @@
 						</div>
 						<div class='likeAndDes'>
 							<img onclick='goToLogin()' src='assets/heart.png' alt=''>
-							<p>" . $publicPosts2['likes'] . "</p>
+							<p>&nbsp" . $publicPosts2['likes'] . "</p>
 							<p class='desc'>". $publicPosts2['beschreibung'] . "</p>
 						</div>
 					</div>";

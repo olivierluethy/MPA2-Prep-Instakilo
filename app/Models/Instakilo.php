@@ -19,15 +19,43 @@ class Instakilo
 
     /* When user IS NOT logged in - Show public posts */
     public function publicPosts(){
-        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username FROM images
-        INNER JOIN users ON users.userId = images.fk_userId WHERE images.oeffentlich = 1');
+        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        LEFT JOIN likes ON likes.fk_imageId = images.imageId
+        INNER JOIN users ON users.userId = images.fk_userId
+        WHERE images.oeffentlich = 1
+        HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0');
         $statement->execute();
         return $statement;
+
+        /* ---------------- Eintrag mit 0 likes und alle restlichen Columns sind gleich NULL, verstehe nicht wieso? --------------*/
+        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        // INNER JOIN likes ON likes.fk_imageId = images.imageId
+        // INNER JOIN users ON users.userId = images.fk_userId
+        // WHERE images.oeffentlich = 1
+        // HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0;
+
+        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username FROM images
+        // INNER JOIN users ON users.userId = images.fk_userId
+        // WHERE images.oeffentlich = 1 OR images.imageId IN (SELECT likes.fk_imageId FROM likes)
+
+        // $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        // INNER JOIN likes ON likes.fk_imageId = images.imageId 
+        // INNER JOIN users ON users.userId = images.fk_userId
+        // WHERE images.oeffentlich = 1
+        // HAVING COUNT(likes.likeId) >= 0 AND users.username != ""');
+        // $statement->execute();
+        // return $statement;
+
+        // SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        // INNER JOIN likes ON likes.fk_imageId = images.imageId
+        // INNER JOIN users ON users.userId = images.fk_userId
+        // WHERE images.oeffentlich = 1 AND user.username NOT NULL
+        // HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0;
     }
 
     /* When user IS logged in - Show first posts from other people you follow and then public posts - Show already liked posts */
     public function alreadyLikedPosts($id){
-        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) FROM images
+        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         INNER JOIN users ON users.userId = images.fk_userId
         INNER JOIN likes ON likes.fk_imageId = images.imageId
         WHERE images.fk_userId IN (SELECT followers.userId FROM followers WHERE followers.followsId = :id) OR images.fk_userId = :id
@@ -40,7 +68,7 @@ class Instakilo
 
     /* When user IS logged in - Show first posts from other people you follow and then public - Not liked posts */
     public function unlikedPosts($id){
-        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) FROM images
+        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         INNER JOIN users ON users.userId = images.fk_userId
         INNER JOIN likes ON likes.fk_imageId = images.imageId
         WHERE images.fk_userId IN (SELECT followers.userId FROM followers WHERE followers.followsId = :id) OR images.fk_userId = :id

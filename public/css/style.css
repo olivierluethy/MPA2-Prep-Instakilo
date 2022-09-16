@@ -274,6 +274,7 @@ body main .grid-container .likeAndDes {
   text-align: center;
   display: flex;
   font-size: 20px;
+  margin-top: 10px;
 }
 body main .grid-container .likeAndDes img {
   cursor: pointer;
