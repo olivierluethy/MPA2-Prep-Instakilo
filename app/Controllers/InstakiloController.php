@@ -15,10 +15,10 @@ class InstakiloController{
             $allPosts = $Instakilo -> allPosts();
             $allPosts = $allPosts -> fetchAll();
 
-            $alreadyLikedPosts = $Instakilo -> alreadyLikedPosts($_SESSION['id']);
+            $alreadyLikedPosts = $Instakilo -> alreadyLikedPosts();
             $alreadyLikedPosts = $alreadyLikedPosts -> fetchAll();
 
-            $unlikedPosts = $Instakilo -> unlikedPosts($_SESSION['id']);
+            $unlikedPosts = $Instakilo -> unlikedPosts();
             $unlikedPosts = $unlikedPosts -> fetchAll();
         }else {
             /* Show public images */
@@ -38,7 +38,7 @@ class InstakiloController{
             foreach ($alreadyLikedPosts as $alreadyLikedPosts2){
                 $alreadyLikedPostsCounter++;
             }
-            foreach ($unlikedPosts as $unlikedPosts){
+            foreach ($unlikedPosts as $unlikedPosts2){
                 $unlikedPostsCounter++;
             }
         }else {

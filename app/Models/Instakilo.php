@@ -11,8 +11,7 @@ class Instakilo
     /* ---------- POST SECTION ---------- */
     /* Alle Posts */
     public function allPosts(){
-        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username FROM images
-        INNER JOIN users ON users.userId = images.fk_userId');
+        $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData FROM images');
         $statement->execute();
         return $statement;
     }
@@ -54,27 +53,24 @@ class Instakilo
     }
 
     /* When user IS logged in - Show first posts from other people you follow and then public posts - Show already liked posts */
-    public function alreadyLikedPosts($id){
+    public function alreadyLikedPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        INNER JOIN likes ON likes.fk_imageId = images.imageId
-        WHERE images.fk_userId IN (SELECT followers.userId FROM followers WHERE followers.followsId = :id) OR images.fk_userId = :id
-        AND users.userId IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)');
+        WHERE images.fk_userId IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)
+        HAVING users.username != NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
-        $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
         return $statement;
     }
 
     /* When user IS logged in - Show first posts from other people you follow and then public - Not liked posts */
-    public function unlikedPosts($id){
+    public function unlikedPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
+        LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        INNER JOIN likes ON likes.fk_imageId = images.imageId
-        WHERE images.fk_userId IN (SELECT followers.userId FROM followers WHERE followers.followsId = :id) OR images.fk_userId = :id
-        AND users.userId NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)');
+        WHERE users.userId NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
-        $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
         return $statement;
     }

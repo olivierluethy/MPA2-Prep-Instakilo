@@ -26,20 +26,21 @@
                     foreach ($alreadyLikedPosts as $alreadyLikedPosts2){
                         echo 
 						"<div>
+							<!--Already liked posts-->
 							<div class='profile'>
 								<div class='imgAndUser'>
 									<img src='assets/profile.png' alt=''>
-									<p onclick='visitProfile(" . $alreadyLikedPosts2['images.fk_userId'] . ")' class='username' title='Das Profil von ". $alreadyLikedPosts2['images.username'] ." anschauen'>" . $alreadyLikedPosts2['images.username'] . "</p>
+									<p onclick='visitProfile(" . $alreadyLikedPosts2['fk_userId'] . ")' class='username' title='Das Profil von ". $alreadyLikedPosts2['username'] ." anschauen'>" . $alreadyLikedPosts2['username'] . "</p>
 								</div>
 							</div>
 							<div class='post'>
-								<p>". $alreadyLikedPosts2['images.titel'] . "</p>
-								<img src='data:" . $alreadyLikedPosts2['images.imageType'] . ";base64, ".base64_encode($alreadyLikedPosts2['imageData']). "'/>
+								<p>". $alreadyLikedPosts2['titel'] . "</p>
+								<img src='data:" . $alreadyLikedPosts2['imageType'] . ";base64, ".base64_encode($alreadyLikedPosts2['imageData']). "'/>
 							</div>
 							<div class='likeAndDes'>
-								<img onclick='likePost(" . $alreadyLikedPosts2['images.imageId'] . ")' src='assets/heart.png' alt=''>
-								<p>" . $alreadyLikedPosts2['Likes'] . "</p>
-								<p class='desc'>". $posts2['images.beschreibung'] . "</p>
+								<img onclick='likePost(" . $alreadyLikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
+								<p>" . $alreadyLikedPosts2['likes'] . "</p>
+								<p class='desc'>". $alreadyLikedPosts2['beschreibung'] . "</p>
 							</div>
 						</div>";
                     }
@@ -52,6 +53,7 @@
                 foreach ($unlikedPosts as $unlikedPosts2){
 					echo 
 					"<div>
+						<!--Unliked posts-->
 						<div class='profile'>
 							<div class='imgAndUser'>
 								<img src='assets/profile.png' alt=''>
@@ -64,7 +66,7 @@
 						</div>
 						<div class='likeAndDes'>
 							<img onclick='likePost(" . $unlikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
-							<p>" . $unlikedPosts2['Likes'] . "</p>
+							<p>&nbsp" . $unlikedPosts2['likes'] . "</p>
 							<p class='desc'>". $unlikedPosts2['beschreibung'] . "</p>
 						</div>
 					</div>";
@@ -79,6 +81,7 @@
                 foreach ($publicPosts as $publicPosts2){
                     echo 
 					"<div>
+						<!--Public posts-->
 						<div class='profile'>
 							<div class='imgAndUser'>
 								<img src='assets/profile.png' alt=''>
