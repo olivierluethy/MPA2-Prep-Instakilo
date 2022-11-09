@@ -66,11 +66,17 @@
             </div>
             <?php
                 foreach($profile as $profile2){
-                    echo "
+                    if($profile2['description'] == ""){
+                        echo "<div class='description'>
+                        <p>Keine Beschreibung vorhanden</p>
+                    </div>";
+                    }else{
+                        echo "
                     <div class='description'>
-                        <textarea name='' id='' cols='85' rows='25'>" . $profile2['description'] . "</textarea>
+                        <p>" . $profile2['description'] . "</p>
                     </div>
                     ";
+                    }
                 }
                 ?>
         </div>

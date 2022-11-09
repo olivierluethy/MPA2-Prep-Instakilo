@@ -19,10 +19,9 @@ class Instakilo
     /* When user IS NOT logged in - Show public posts */
     public function publicPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
-        LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        WHERE images.oeffentlich = 1
-        HAVING COUNT(likes.likeId) = 0 OR COUNT(likes.likeId) > 0');
+        LEFT JOIN likes ON likes.fk_imageId = images.imageId
+        WHERE images.oeffentlich = 1');
         $statement->execute();
         return $statement;
     }
@@ -32,7 +31,8 @@ class Instakilo
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        WHERE :liked IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked) AND images.imageId IS NOT NULL');
+        WHERE :liked IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)
+        HAVING images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
         return $statement;
@@ -43,7 +43,8 @@ class Instakilo
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData, images.fk_userId, users.username, COUNT(likes.likeId) AS "likes" FROM images
         LEFT JOIN likes ON likes.fk_imageId = images.imageId
         INNER JOIN users ON users.userId = images.fk_userId
-        WHERE :liked NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked) AND images.imageId IS NOT NULL');
+        WHERE :liked NOT IN (SELECT likes.fk_userId FROM likes WHERE likes.fk_userId = :liked)
+        HAVING images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
         return $statement;

@@ -45,34 +45,34 @@
 						</div>";
                     }
                 }
-			}
-            if($unlikedPostsCounter > 0){
-				// Ungelikte Posts
-                echo "<div class='grid-container'>";
-                foreach ($unlikedPosts as $unlikedPosts2){
-					echo 
-					"<div>
-						<!--Unliked posts-->
-						<div class='profile'>
-							<div class='imgAndUser'>
-								<img src='assets/profile.png' alt=''>
-								<p onclick='visitProfile(" . $unlikedPosts2['fk_userId'] . ")' class='username' title='Das Profil von ". $unlikedPosts2['username'] ." anschauen'>" . $unlikedPosts2['username'] . "</p>
+				if($unlikedPostsCounter > 0){
+					// Ungelikte Posts
+					echo "<div class='grid-container'>";
+					foreach ($unlikedPosts as $unlikedPosts2){
+						echo 
+						"<div>
+							<!--Unliked posts-->
+							<div class='profile'>
+								<div class='imgAndUser'>
+									<img src='assets/profile.png' alt=''>
+									<p onclick='visitProfile(" . $unlikedPosts2['fk_userId'] . ")' class='username' title='Das Profil von ". $unlikedPosts2['username'] ." anschauen'>" . $unlikedPosts2['username'] . "</p>
+								</div>
 							</div>
-						</div>
-						<div class='post'>
-							<p>". $unlikedPosts2['titel'] . "</p>
-							<img src='data:" . $unlikedPosts2['imageType'] . ";base64, ".base64_encode($unlikedPosts2['imageData']). "'/>
-						</div>
-						<div class='likeAndDes'>
-							<img onclick='likePost(" . $unlikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
-							<p>&nbsp" . $unlikedPosts2['likes'] . "</p>
-							<p class='desc'>". $unlikedPosts2['beschreibung'] . "</p>
-						</div>
-					</div>";
-                }
-            } else {
-                echo "<h1>Derzeit noch keine Beiträge</h1>";
-            }
+							<div class='post'>
+								<p>". $unlikedPosts2['titel'] . "</p>
+								<img src='data:" . $unlikedPosts2['imageType'] . ";base64, ".base64_encode($unlikedPosts2['imageData']). "'/>
+							</div>
+							<div class='likeAndDes'>
+								<img onclick='likePost(" . $unlikedPosts2['imageId'] . ")' src='assets/heart.png' alt=''>
+								<p>&nbsp" . $unlikedPosts2['likes'] . "</p>
+								<p class='desc'>". $unlikedPosts2['beschreibung'] . "</p>
+							</div>
+						</div>";
+					}
+				}
+			}else {
+				echo "<h1>Derzeit noch keine Beiträge</h1>";
+			}
         }
         /* Falls man nicht eingeloggt ist */ 
         else if ($publicPostsCounter > 0) {
