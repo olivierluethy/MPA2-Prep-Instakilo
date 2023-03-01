@@ -13,7 +13,7 @@ class Instakilo
     public function allPosts(){
         $statement = $this->db->prepare('SELECT images.imageId, images.titel, images.beschreibung, images.datum, images.ort, images.imageType, images.imageData FROM images');
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* When user IS NOT logged in - Show public posts */
@@ -23,7 +23,7 @@ class Instakilo
         LEFT JOIN likes ON likes.fk_imageId = images.imageId
         WHERE images.oeffentlich = 1');
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* When user IS logged in - Show first private posts from people you follow and and then public posts - Show already liked posts */
@@ -35,7 +35,7 @@ class Instakilo
         HAVING images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* When user IS logged in - Show first private posts from people you follow and and then public posts - Not liked posts */
@@ -47,7 +47,7 @@ class Instakilo
         HAVING images.imageId IS NOT NULL');
         $statement->bindParam(':liked', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* If someone wants to like a post */
@@ -56,7 +56,7 @@ class Instakilo
         $statement->bindParam(':imageId', $id, PDO::PARAM_STR); /* Von wem das Bild kommt */
         $statement->bindParam(':liker', $_SESSION['id'], PDO::PARAM_STR); /* Wer das Bild liken will */
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* If somene liked a post so he cann also remove the like */
@@ -65,14 +65,14 @@ class Instakilo
         $statement->bindParam(':imageId', $id, PDO::PARAM_STR); /* Von wem das Bild kommt */
         $statement->bindParam(':liker', $_SESSION['id'], PDO::PARAM_STR); /* Wer das Bild nicht mehr liken will */
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Count how many likes a post has */
     public function likes(){
         $statement = $this->db->prepare('SELECT COUNT(likeId) AS "Likes", fk_imageId, fk_userId FROM likes');
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Check if user already likes a post */
@@ -82,7 +82,7 @@ class Instakilo
         $statement->bindParam(':id', $id, PDO::PARAM_STR); /* Id des Bildes */
         $statement->bindParam(':whoFollowsId', $_SESSION['id'], PDO::PARAM_STR); /* Id des aktuellen Benutzers */
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* ---------- PROFILE SECTION ---------- */
@@ -91,7 +91,7 @@ class Instakilo
         $statement = $this->db->prepare('SELECT * FROM users WHERE userId = :id');
         $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* To visit the profile from someone else */
@@ -100,7 +100,7 @@ class Instakilo
         INNER JOIN users ON users.userId = followers.userId WHERE users.userId = :id');
         $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* ---------- FOLLOW SECTION ---------- */
@@ -110,7 +110,7 @@ class Instakilo
         $statement->bindParam(':userId', $id, PDO::PARAM_STR); /* User der gefolgt wird */
         $statement->bindParam(':follows', $_SESSION['id'], PDO::PARAM_STR); /* Wer den User folgen will */
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Unfollow a person */
@@ -119,7 +119,7 @@ class Instakilo
         $statement->bindParam(':id', $id, PDO::PARAM_STR); /* User der gefolgt wird */
         $statement->bindParam(':User', $_SESSION['id'], PDO::PARAM_STR); /* Wer folgen den User folgen will */
         $statement->execute();    
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Count how many followers someone has */
@@ -127,7 +127,7 @@ class Instakilo
         $statement = $this->db->prepare('SELECT COUNT(followId) AS "Followers" FROM followers WHERE userId = :id');
         $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Count how many people someone follows */
@@ -135,7 +135,7 @@ class Instakilo
         $statement = $this->db->prepare('SELECT COUNT(followId) AS "Follows" FROM followers WHERE followsId = :id');
         $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 
     /* Check if user already follows a person */
@@ -145,6 +145,6 @@ class Instakilo
         $statement->bindParam(':id', $id, PDO::PARAM_STR);
         $statement->bindParam(':whoFollowsId', $_SESSION['id'], PDO::PARAM_STR);
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 }

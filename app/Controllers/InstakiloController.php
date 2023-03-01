@@ -13,40 +13,22 @@ class InstakiloController{
         if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
             /* Show posts the user follows and public to */
             $allPosts = $Instakilo -> allPosts();
-            $allPosts = $allPosts -> fetchAll();
 
             $alreadyLikedPosts = $Instakilo -> alreadyLikedPosts();
-            $alreadyLikedPosts = $alreadyLikedPosts -> fetchAll();
 
             $unlikedPosts = $Instakilo -> unlikedPosts();
-            $unlikedPosts = $unlikedPosts -> fetchAll();
         }else {
             /* Show public images */
             $publicPosts = $Instakilo -> publicPosts();
-            $publicPosts = $publicPosts -> fetchAll();
         }
 
         // Check if the user is already logged in, if yes then redirect him to index page
         if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
-            $allPostsCounter = 0;
-            $alreadyLikedPostsCounter = 0;
-            $unlikedPostsCounter = 0;
-
-            foreach ($allPosts as $allPosts2){
-                $allPostsCounter++;
-            }
-            foreach ($alreadyLikedPosts as $alreadyLikedPosts2){
-                $alreadyLikedPostsCounter++;
-            }
-            foreach ($unlikedPosts as $unlikedPosts2){
-                $unlikedPostsCounter++;
-            }
+            $allPostsCounter = count($allPosts);
+            $alreadyLikedPostsCounter = count($alreadyLikedPosts);
+            $unlikedPostsCounter = count($unlikedPosts);
         }else {
-            $publicPostsCounter = 0;
-
-            foreach ($publicPosts as $publicPosts2){
-                $publicPostsCounter++;
-            }
+            $publicPostsCounter = count($publicPosts);
         }
         
         require 'app/Views/main.view.php';
@@ -64,13 +46,10 @@ class InstakiloController{
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             $profile = $Instakilo -> profile($_SESSION['id']);
-            $profile = $profile -> fetchAll();
 
             $followers = $Instakilo -> followers($_SESSION['id']);
-            $followers = $followers -> fetchAll();
 
             $follows = $Instakilo -> follows($_SESSION['id']);
-            $follows = $follows -> fetchAll();
 
             require 'app/Views/profile.view.php';
         }else{
@@ -89,24 +68,16 @@ class InstakiloController{
         $id = $_GET['id'];
 
         $profile = $Instakilo -> profile($id);
-        $profile = $profile -> fetchAll();
 
         $visit = $Instakilo -> visitProfile($id);
-        $visit = $visit -> fetchAll();
 
         $followers = $Instakilo -> followers($id);
-        $followers = $followers -> fetchAll();
 
         $follows = $Instakilo -> follows($id);
-        $follows = $follows -> fetchAll();
 
         $alreadyFollows = $Instakilo -> alreadyFollows($id, $_SESSION['id']);
-        $alreadyFollows = $alreadyFollows -> fetchAll();
 
-        $alreadyFollowsCounter = 0;
-        foreach($alreadyFollows as $alreadyFollows2){
-            $alreadyFollowsCounter++;
-        }
+        $alreadyFollowsCounter = count($alreadyFollows);
 
         require 'app/Views/visitProfile.view.php';
     }

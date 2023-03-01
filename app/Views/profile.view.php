@@ -36,49 +36,27 @@
             </div>
         </div>
         <div class="item3">
-            <?php
-            foreach($profile as $profile2){
-                echo "
-                <div class='profile-name'>
-                    <img src='assets/profile.png' alt=''>
-                    <h1>" . $profile2["username"] . "</h1>
-                </div>";
-            }?>
-            <div class='follow'>
-                <?php
-                foreach($followers as $followers2){
-                    echo "
-                    <div class='followers'>
-                            <h3>" . $followers2['Followers'] . "</h3>
-                            <h3>Followers</h3>
-                        </div>
-                    ";
-                }?>
-                <?php
-                foreach($follows as $follows2){
-                    echo "
-                    <div class='follows'>
-                            <h3>" . $follows2['Follows'] . "</h3>
-                            <h3>Follows</h3>
-                        </div>
-                    ";
-                }?>
+            <div class="profile-name">
+                <img src="assets/profile.png" alt="">
+                <h1><?= $profile[0]["username"] ?></h1>
             </div>
-            <?php
-                foreach($profile as $profile2){
-                    if($profile2['description'] == ""){
-                        echo "<div class='description'>
-                        <p>Keine Beschreibung vorhanden</p>
-                    </div>";
-                    }else{
-                        echo "
-                    <div class='description'>
-                        <p>" . $profile2['description'] . "</p>
-                    </div>
-                    ";
-                    }
-                }
-                ?>
+            <div class="follow">
+                <div class="followers">
+                    <h3><?= $followers[0]['Followers'] ?></h3>
+                    <h3>Followers</h3>
+                </div>
+                <div class="follows">
+                    <h3><?= $follows[0]['Follows'] ?></h3>
+                    <h3>Follows</h3>
+                </div>
+            </div>
+            <div class="description">
+                <?php if ($profile[0]['description'] == ""): ?>
+                <p>Keine Beschreibung vorhanden</p>
+                <?php else: ?>
+                <p><?= $profile[0]['description'] ?></p>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 

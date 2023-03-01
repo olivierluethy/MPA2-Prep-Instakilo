@@ -18,52 +18,59 @@
     ?>
 
     <div class="visit-container">
+            <?php
+        foreach($profile as $profile2):
+        ?>
+        <div class='item2'>
+            <img src='assets/profile.png' alt=''>
+        </div>
+        <div class='item3'>
+            <h2><?= $profile2['username'] ?></h2>
+        </div>
         <?php
-        foreach($profile as $profile2){
-            echo "<div class='item2'>
-                <img src='assets/profile.png' alt=''>
-            </div>
-            <div class='item3'><h2>". $profile2['username'] ."</h2></div>";
-        }
-        foreach($followers as $followers2){
-            echo "
-                <div class='item4'>
-                    <h3>" . $followers2['Followers'] . "</h3>
-                    <h3>Followers</h3>
-                </div>
-            ";
-        }
-        foreach($follows as $follows2){
-            echo "
-                <div class='item5'>
-                    <h3>" . $follows2['Follows'] . "</h3>
-                    <h3>Follows</h3>
-                </div>
-            ";
-        }
-        foreach($profile as $profile2){
-            echo "
-                <div class='item6'>";
-                    if($profile2['description'] == ""){
-                        echo "<p>Keine Beschreibung</p>";
-                    }else{
-                        echo "<textarea name='' id='' cols='85' rows='10'>" . $profile2['description'] . "</textarea><br>";
-                    }
-                    // Check if the user is already logged in, if yes then redirect him to index page
-                    if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true) {
+        endforeach;
 
-                        if($_SESSION['id'] != $profile2['userId']){
-                            if($alreadyFollowsCounter > 0){
-                                echo "<button onclick='unfollow(" . $profile2['userId'] . ")'>Unfollow</button>";
-                            }else {
-                                echo "<button onclick='follow(" . $profile2['userId'] . ")'>Follow</button>";
-                            }
-                        }
-                    }else {
-                        echo "<button onclick='goToLogin()'>Follow</button>";
-                    }
-                echo "</div>";
-        }
+        foreach($followers as $followers2):
+        ?>
+        <div class='item4'>
+            <h3><?= $followers2['Followers'] ?></h3>
+            <h3>Followers</h3>
+        </div>
+        <?php
+        endforeach;
+
+        foreach($follows as $follows2):
+        ?>
+        <div class='item5'>
+            <h3><?= $follows2['Follows'] ?></h3>
+            <h3>Follows</h3>
+        </div>
+        <?php
+        endforeach;
+
+        foreach($profile as $profile2):
+        ?>
+        <div class='item6'>
+            <?php if($profile2['description'] == ""): ?>
+                <p>Keine Beschreibung</p>
+            <?php else: ?>
+                <textarea name='' id='' cols='85' rows='10'><?= $profile2['description'] ?></textarea><br>
+            <?php endif; ?>
+
+            <?php if (isset($_SESSION["loggedin"]) && $_SESSION["loggedin"] === true): ?>
+                <?php if($_SESSION['id'] != $profile2['userId']): ?>
+                    <?php if($alreadyFollowsCounter > 0): ?>
+                        <button onclick='unfollow(<?= $profile2['userId'] ?>)'>Unfollow</button>
+                    <?php else: ?>
+                        <button onclick='follow(<?= $profile2['userId'] ?>)'>Follow</button>
+                    <?php endif; ?>
+                <?php endif; ?>
+            <?php else: ?>
+                <button onclick='goToLogin()'>Follow</button>
+            <?php endif; ?>
+        </div>
+        <?php
+        endforeach;
         ?>
     </div>
     <?php

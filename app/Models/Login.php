@@ -11,6 +11,6 @@ class Login
     public function index(){
         $statement = $this->db->prepare('SELECT * FROM Person');
         $statement->execute();
-        return $statement;
+        return $statement->fetch();
     }
 }
