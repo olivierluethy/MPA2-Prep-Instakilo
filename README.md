@@ -1,130 +1,140 @@
-<!-- PROJECT LOGO -->
-<br />
 <p align="center">
-  <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git">
-    <img src="assets/favicon.ico" alt="Logo" width="80" height="80">
-  </a>
-
-  <h3 align="center">MPA Prep Instakilo</h3>
-  <h4 align="center">Ein Instagram Klon. Dient als Vorbereitung auf die Mini PA.</h4>
-
-  <p align="center">
-    Hier erkläre ich die Idee
-    <br />
-    <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git/README.md"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git">View Demo</a>
-    ·
-    <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git/issues">Report Bug</a>
-    ·
-    <a href="http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git/issues">Request Feature</a>
-  </p>
+  <img src="public/assets/logo.png" alt="Instakilo" width="80" height="80">
 </p>
 
-<!-- TABLE OF CONTENTS -->
-<details open="open">
-  <summary>Table of Contents</summary>
-  <ol>
-    <li>
-      <a href="#über-das-projekt">Über das Projekt</a>
-    </li>
-    <li>
-      <a href="#was-soll-die-applikation-können?">Was soll die Applikation können?</a>
-    </li>
-    <li>
-      <a href="#installation">Installation</a>
-    </li>
-    <li>
-      <a href="#verwendete-quellen">Verwendete Quellen</a>
-    </li>
-  </ol>
-</details>
+<h1 align="center">Instakilo</h1>
 
-<!-- ABOUT THE PROJECT -->
+<p align="center">A small Instagram-style photo-sharing app — a modernized PHP MVC reference project.</p>
 
-## Über das Projekt
+---
 
-Wie oben schon beschrieben, dient dieses Projekt als Vorbereitung auf die Mini PA, die am 8. August stattfinden wird. Dieses Projekt richtet sich an die Aufgabenstellung der Mini PA.
+## Overview
 
-  
+Instakilo lets users share photo posts, follow each other and like posts. Anonymous
+visitors see public posts; logged-in users get a personalized feed (public posts +
+posts from people they follow + their own), can upload multi-image posts with a rich
+text description, and manage their profile.
 
-<!-- Possibilities -->
+This repository is a **full modernization** of an older procedural PHP project. See
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for what changed and why.
 
-## Was soll die Applikation können?
+### Technology stack
 
-Natürlich wird diese App nicht alles können, was Instagram selber zu bieten hat. Grob soll die App nur folgendes können:
+| Layer     | Technology                                            |
+|-----------|-------------------------------------------------------|
+| Backend   | PHP 8.2, custom MVC (no framework), PDO               |
+| Database  | MySQL 8                                               |
+| Frontend  | Tailwind CSS (compiled), vanilla JS, Quill editor     |
+| Web server| Apache + `mod_rewrite` (document root = `public/`)    |
+| Tooling   | Docker / Docker Compose, Node (Tailwind build only)   |
 
- 1. Wenn Benutzer <strong>NICHT</strong> eingeloggt ist:
-	- Kann nur <strong>öffentliche</strong> Bilder sehen
-	- Mehr nicht
-	
-<strong>Die Ausgabe der Bilder wird nach den meisten Likes eines öffentlichen Bildes sortiert.</strong>
-	<br>
-1. Wenn Benutzer <strong>EINGELOGGT</strong> ist:
+## Quick start (Docker)
 
-	- Kann Bilder hochladen, bearbeiten und löschen <strong>(nur seine eigene)</strong>
-	- Kann Benutzer folgen und entfolgen, um private Bilder von ihnen zu sehen
-	-	Kann Bilder von Benutzer sehen die er folgt, die öffentlich und privat sind.
-	- Kann unter seinem Profil folgendes noch ändern:
+The only requirement is Docker with the Compose plugin.
 
-		- Passwort ändern
-
-		- Benutzername ändern
-
-		- Hochgeladene Bilder bearbeiten
-
-		- Beschreibung ändern
-
-<strong>Die Ausgabe der Bilder wird nach den meisten Likes einer gefolgten Person sortiert<strong>
-
-> <strong>Wie man somit sieht, lohnt es sich kaum kein Konto zu haben ;)</strong>
-
-<!-- INSTALLATION -->
-
-## Installation
-
-1. Als erstes müssen Sie git auf Ihrem lokalen Computer installieren. Dazu müssen Sie diese [Website] (https://git-scm.com/downloads) besuchen.
-
-2. Suchen Sie in Ihrem Windows-Explorer nach einem geeigneten Speicherort für das Projekt
-
-3. Klicken Sie mit der rechten Maustaste auf den Ordner oder Ort und dann auf "Git Bash Here".
-
-4. Schließlich öffnet sich etwas wie die Windows-Eingabeaufforderung. Wenn Sie das tun, müssen Sie nur folgendes eingeben
-
-```sh
-
-git clone http://192.168.100.57:3000/Olivier_Luethy/Instakilo.git
-
+```bash
+cp .env.example .env          # optional — sensible defaults are built in
+docker compose up --build
 ```
 
-5. Wenn Sie das Projekt erfolgreich geklont haben, benötigen Sie eine lokale Datenbank. Ich habe [XAMPP](https://www.apachefriends.org/de/index.html) verwendet. Wenn Sie es auch verwenden möchten, stellen Sie bitte sicher, dass Sie die neueste Version davon herunterladen. Sonst funktioniert es nicht wie erwartet.
+Then open **http://localhost:8080**.
 
-6. Wenn du alles richtig installiert hast, kannst du die Projekte im Webbrowser starten, indem du diesen Befehl eintippst:
+On first start the `assets` service compiles Tailwind and vendors Quill into
+`public/`, and MySQL loads the schema + seed data from `db/init/`. Give it a few
+seconds; the page styles itself once `public/css/app.css` has been written.
 
-```sh
+> Change the host port with `APP_PORT` in `.env` if `8080` is taken.
 
-http://localhost/Instakilo/
+### Demo accounts
+
+| Email             | Password   |
+|-------------------|------------|
+| `olivier@kauz.ch` | `kauz.git` |
+| `test@test.ch`    | `kauz.git` |
+
+## Project structure
 
 ```
+.
+├── app/
+│   ├── Core/           # Framework: Router, Database, Controller, Model, Auth,
+│   │                   #   Csrf, Validator, View, HtmlSanitizer, Request, ...
+│   ├── Controllers/    # HTTP entry points (thin)
+│   ├── Models/         # Data access (one per table/aggregate)
+│   └── Views/          # Templates: layouts/, partials/, <page>/
+├── config/
+│   ├── config.php      # Single config source (reads env vars)
+│   └── routes.php      # Route table
+├── public/             # *** Web root *** — only this is web-accessible
+│   ├── index.php       # Front controller
+│   ├── .htaccess       # Rewrite + security headers
+│   ├── css/app.css     # Built Tailwind (generated)
+│   ├── js/             # theme.js, app.js, upload.js
+│   ├── vendor/quill/   # Vendored Quill (generated)
+│   └── assets/         # Images/icons
+├── resources/css/      # Tailwind source (app.css)
+├── db/init/            # Schema + seed (auto-loaded by MySQL)
+├── docs/               # ARCHITECTURE.md, API.md
+├── Dockerfile          # Multi-stage: Node asset build -> PHP/Apache
+└── docker-compose.yml  # db + app + assets
+```
 
-<!-- Verwendete Quellen-->
+## Local development (without Docker)
 
-## Verwendete Quellen
-Hier werden alle Quellen aufgelistet, die während der Vorbereitung gebraucht wurden.
+You need PHP 8.2+ (`pdo_mysql`, `mbstring`, `dom`), MySQL 8 and Node 20+.
 
-Frage 1: Wie Variable in Header Location PHP einfügen?
-Antwort: https://stackoverflow.com/questions/9773152/insert-variable-into-header-location-php
+```bash
+# 1. Database
+mysql -u root -p -e "CREATE DATABASE instakilo"
+mysql -u root -p instakilo < db/init/01-schema.sql
 
-Frage 2: Wie eine hochgeladene Datei nach Kriterien überprüfen?
-Antwort: https://stackoverflow.com/questions/9314164/php-uploading-files-image-only-checking
-Antwort: https://www.w3schools.com/php/php_file_upload.asp
+# 2. Frontend assets
+npm install
+npm run build          # or: npm run watch  (rebuild on change)
 
-Frage 3: Wie grossen Dateipfad in die "require_once" Methode reintun?
-Antwort: https://www.php.net/manual/de/function.require-once.php
+# 3. Configure (env vars or a .env loaded into your shell)
+export DB_HOST=127.0.0.1 DB_NAME=instakilo DB_USER=root DB_PASSWORD=
 
-Frage 4: Wie fügt man eine Modal-Box in Webseite ein?
-Antwort: https://www.w3schools.com/howto/howto_css_modals.asp
-<!-- DOCUMENTATION -->
+# 4. Serve with the document root at public/
+php -S localhost:8080 -t public
+```
 
-Die Dokumentation zu diesem Framework finden Sie im Ordner <strong>doc</strong>!
+> The built-in PHP server doesn't read `.htaccess`; routing still works because
+> `index.php` is the directory index and the router reads the path from `?url=`.
+> For pretty URLs locally, use Apache/Nginx with `public/` as the document root.
+
+## Deployment (production)
+
+1. Build the self-contained image (assets are compiled into it):
+   ```bash
+   docker build -t instakilo:latest .
+   ```
+2. Run it against a managed MySQL, supplying configuration via environment
+   variables (`DB_*`, `APP_ENV=production`, `APP_DEBUG=false`). The image serves
+   from `public/` on port 80.
+3. Terminate TLS at a reverse proxy / load balancer and forward
+   `X-Forwarded-Proto: https` so the session cookie is marked `Secure`.
+
+For production hardening notes and known limitations, see
+[`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+
+## API
+
+All endpoints, request/response formats and auth requirements are documented in
+[`docs/API.md`](docs/API.md).
+
+## Configuration reference
+
+| Variable               | Default     | Description                          |
+|------------------------|-------------|--------------------------------------|
+| `APP_ENV`              | development | `development` or `production`        |
+| `APP_DEBUG`            | true        | Show errors (set `false` in prod)    |
+| `APP_PORT`             | 8080        | Host port for the app                |
+| `APP_BASE_PATH`        | *(empty)*   | Sub-directory if not served at root  |
+| `DB_HOST` / `DB_PORT`  | db / 3306   | Database host/port                   |
+| `DB_NAME`              | instakilo   | Database name                        |
+| `DB_USER` / `DB_PASSWORD` | instakilo | Database credentials              |
+| `DB_ROOT_PASSWORD`     | rootsecret  | MySQL root password (container)      |
+| `DB_PORT_HOST`         | 3307        | Host port exposing MySQL             |
+| `UPLOAD_MAX_FILE_SIZE` | 5242880     | Max bytes per image                  |
+| `UPLOAD_MAX_FILES`     | 10          | Max images per post                  |

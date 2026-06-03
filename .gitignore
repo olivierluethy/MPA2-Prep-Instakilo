@@ -1,0 +1,14 @@
+# Environment
+.env
+
+# Node / build tooling
+node_modules/
+package-lock.json
+
+# Generated frontend assets (built by `npm run build` / the assets service)
+public/css/app.css
+public/vendor/
+
+# OS / editor noise
+.DS_Store
+*.log

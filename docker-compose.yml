@@ -1,0 +1,72 @@
+# Instakilo — one-command local stack.
+#
+#   docker compose up --build
+#
+# Services:
+#   db     — MySQL 8 (schema + seed auto-loaded from db/init on first run)
+#   app    — PHP 8.2 + Apache, document root = public/
+#   assets — Node watcher that compiles Tailwind CSS and vendors Quill on change
+#
+# Open http://localhost:8080  (first start waits a few seconds for the asset
+# build to finish; the page styles itself once public/css/app.css is written).
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: instakilo-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootsecret}
+      MYSQL_DATABASE: ${DB_NAME:-instakilo}
+      MYSQL_USER: ${DB_USER:-instakilo}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-instakilo}
+    ports:
+      - "${DB_PORT_HOST:-3307}:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_ROOT_PASSWORD:-rootsecret}"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: instakilo-app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      APP_DEBUG: ${APP_DEBUG:-true}
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-instakilo}
+      DB_USER: ${DB_USER:-instakilo}
+      DB_PASSWORD: ${DB_PASSWORD:-instakilo}
+      UPLOAD_MAX_FILE_SIZE: ${UPLOAD_MAX_FILE_SIZE:-5242880}
+      UPLOAD_MAX_FILES: ${UPLOAD_MAX_FILES:-10}
+    ports:
+      - "${APP_PORT:-8080}:80"
+    # Live-edit PHP and JS without rebuilding. The assets service keeps
+    # public/css/app.css and public/vendor in sync on the shared host directory.
+    volumes:
+      - .:/var/www/html
+
+  assets:
+    image: node:20-alpine
+    container_name: instakilo-assets
+    working_dir: /app
+    command: sh -c "npm install && npm run watch"
+    volumes:
+      - .:/app
+      # Keep node_modules inside the container only (off the host).
+      - assets-node-modules:/app/node_modules
+
+volumes:
+  db-data:
+  assets-node-modules:
