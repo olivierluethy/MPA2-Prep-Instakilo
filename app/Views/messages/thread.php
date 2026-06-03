@@ -7,7 +7,9 @@
  * @var array      $other
  * @var array      $messages  oldest-first
  * @var array      $previews  shared-post previews keyed by post id
+ * @var array      $reactions reactions keyed by message id
  * @var int        $lastId    id of the newest message (poll cursor)
+ * @var int        $rev       revision cursor (epoch) for edits/deletes
  */
 
 use App\Core\Csrf;
@@ -16,7 +18,8 @@ use App\Core\View;
 $types = ['image' => 'Bilder', 'gif' => 'GIFs', 'video' => 'Videos', 'file' => 'Dateien', 'link' => 'Links', 'text' => 'Text', 'post' => 'Beiträge'];
 ?>
 <div class="mx-auto flex h-[calc(100vh-8rem)] max-w-md flex-col"
-     data-dm-thread data-with="<?= (int) $other['id'] ?>" data-me="<?= $me ?>" data-lastid="<?= (int) $lastId ?>">
+     data-dm-thread data-with="<?= (int) $other['id'] ?>" data-me="<?= $me ?>"
+     data-lastid="<?= (int) $lastId ?>" data-rev="<?= (int) $rev ?>">
 
     <!-- Header -->
     <header class="mb-2 flex items-center gap-3">
@@ -64,22 +67,37 @@ $types = ['image' => 'Bilder', 'gif' => 'GIFs', 'video' => 'Videos', 'file' => '
         <?php endforeach; ?>
     </div>
 
+    <!-- Initial reaction state (consumed by messages.js) -->
+    <script type="application/json" data-initial-reactions><?= json_encode($reactions, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?></script>
+
     <!-- Typing indicator -->
     <p class="mt-1 hidden h-4 text-xs text-gray-400" data-typing><?= e($other['username']) ?> tippt …</p>
 
+    <!-- Reply preview (shown when replying) -->
+    <div class="mt-1 hidden items-center gap-2 rounded-lg bg-gray-100 px-3 py-1.5 text-xs dark:bg-gray-800" data-reply-bar>
+        <span class="min-w-0 flex-1 truncate">Antwort an <span class="font-semibold" data-reply-name></span>: <span data-reply-snippet class="opacity-80"></span></span>
+        <button type="button" class="text-gray-400 hover:text-rose-500" data-reply-cancel aria-label="Antwort verwerfen">&times;</button>
+    </div>
+
+    <!-- Attachment previews (before sending) -->
+    <ul class="mt-1 hidden flex-wrap gap-2" data-attach-previews></ul>
+    <p class="mt-1 hidden text-xs text-rose-600 dark:text-rose-400" data-dm-error></p>
+
     <!-- Composer -->
-    <form class="mt-2 flex items-center gap-2" data-dm-composer method="POST" action="<?= url('messages/send') ?>" enctype="multipart/form-data">
+    <form class="mt-2 flex items-center gap-1" data-dm-composer method="POST" action="<?= url('messages/send') ?>" enctype="multipart/form-data">
         <?= Csrf::field() ?>
         <input type="hidden" name="recipient" value="<?= (int) $other['id'] ?>">
-        <button type="button" data-attach class="btn-ghost h-9 w-9 !px-0" aria-label="Datei anhängen">
+        <input type="hidden" name="reply_to" value="" data-reply-input>
+        <button type="button" data-attach class="btn-ghost h-9 w-9 !px-0" aria-label="Dateien anhängen">
             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13"/></svg>
         </button>
-        <input type="file" name="media" class="hidden" data-media-input
+        <input type="file" name="media[]" multiple class="hidden" data-media-input
                accept="image/*,video/*,.pdf,.zip,.txt,.doc,.docx,.xls,.xlsx,.gif">
+        <button type="button" data-emoji-trigger data-emoji-target="#dm-body" class="btn-ghost h-9 w-9 !px-0" aria-label="Emoji">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.015h-.008V9.75Z"/></svg>
+        </button>
         <label class="sr-only" for="dm-body">Nachricht</label>
         <input id="dm-body" type="text" name="body" maxlength="2000" autocomplete="off" class="input" placeholder="Nachricht, Bild-URL oder Link …">
         <button type="submit" class="btn-primary shrink-0">Senden</button>
     </form>
-    <p class="mt-1 hidden text-xs text-gray-500 dark:text-gray-400" data-attach-name></p>
-    <p class="mt-1 hidden text-xs text-rose-600 dark:text-rose-400" data-dm-error></p>
 </div>

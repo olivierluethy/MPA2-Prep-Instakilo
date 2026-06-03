@@ -8,16 +8,17 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Flash;
 use App\Core\Request;
-use App\Core\Validator;
 use App\Core\View;
 use App\Models\Message;
 use App\Models\MessageMedia;
+use App\Models\MessageReaction;
 use App\Models\Post;
 use App\Models\User;
 
 /**
- * Direct messages: conversation list, thread, sending (text/media/link),
- * sharing a post, real-time polling, typing signal and media streaming.
+ * Direct messages: conversation list, thread, sending (text/multi-media/link),
+ * sharing a post, replies, edit, soft-delete, reactions, real-time polling,
+ * typing signal and media streaming.
  */
 final class MessageController extends Controller
 {
@@ -40,7 +41,6 @@ final class MessageController extends Controller
         if ($otherId === null || $otherId === $me) {
             $this->redirect('messages');
         }
-
         $other = (new User())->findById($otherId);
         if ($other === null) {
             http_response_code(404);
@@ -52,31 +52,30 @@ final class MessageController extends Controller
         $messages->markRead($me, $otherId);
         $thread = $messages->thread($me, $otherId);
 
-        $previews = $this->previewsFor($thread);
-        $lastId = $thread === [] ? 0 : (int) end($thread)['id'];
-
         $this->view('messages.thread', [
-            'me'       => $me,
-            'other'    => $other,
-            'messages' => $thread,
-            'previews' => $previews,
-            'lastId'   => $lastId,
+            'me'        => $me,
+            'other'     => $other,
+            'messages'  => $thread,
+            'previews'  => $this->previewsFor($thread),
+            'reactions' => (new MessageReaction())->forConversation($me, $otherId),
+            'lastId'    => $thread === [] ? 0 : (int) end($thread)['id'],
+            'rev'       => time(),
         ], $other['username'] . ' – Nachrichten');
     }
 
     /**
-     * Send a message: optional uploaded media (image/gif/video/file) and/or text
-     * (which may itself be a media URL or a link). AJAX returns JSON {id}.
+     * Send a message: optional reply, optional text, and zero or more uploaded
+     * attachments (media[]). AJAX returns JSON {id}.
      */
     public function send(Request $request): void
     {
         $this->requireAuth($request);
         $this->requireCsrf($request);
         $me = (int) Auth::id();
-        $json = $request->wantsJson();
 
         $recipientId = (int) ($request->input('recipient', '0') ?? 0);
         $body = trim(strip_tags($request->raw('body')));
+        $replyToId = $this->replyTarget($request, $me, $recipientId);
 
         $recipient = (new User())->findById($recipientId);
         if ($recipient === null || $recipientId === $me) {
@@ -86,37 +85,35 @@ final class MessageController extends Controller
             $this->sendError($request, 'Nachricht ist zu lang (max. 2000 Zeichen).', $recipientId);
         }
 
-        $file = $request->files('media');
-        $hasFile = !empty($file['tmp_name']) && ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_OK;
-
-        if ($hasFile) {
+        $files = $this->normalizeFiles($request->files('media'));
+        if (count($files) > (int) config('uploads.max_files')) {
+            $this->sendError($request, 'Zu viele Anhänge (max. ' . config('uploads.max_files') . ').', $recipientId);
+        }
+        foreach ($files as $file) {
             if (($error = $this->validateMedia($file)) !== null) {
                 $this->sendError($request, $error, $recipientId);
             }
-            $mime = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
-            $kind = $this->mediaKind($mime);
-            $id = (new Message())->send($me, $recipientId, $kind, $body !== '' ? $body : null, null);
-            (new MessageMedia())->add(
-                $id,
-                $kind,
-                $mime,
-                $this->safeName((string) $file['name']),
-                (int) ($file['size'] ?? 0),
-                file_get_contents($file['tmp_name'])
-            );
+        }
+
+        if ($files !== []) {
+            $id = (new Message())->send($me, $recipientId, 'media', $body !== '' ? $body : null, null, $replyToId);
+            $media = new MessageMedia();
+            foreach (array_values($files) as $order => $file) {
+                $mime = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
+                $media->add($id, $this->mediaKind($mime), $mime, $this->safeName((string) $file['name']), (int) ($file['size'] ?? 0), file_get_contents($file['tmp_name']), $order);
+            }
         } elseif ($body !== '') {
-            $id = (new Message())->send($me, $recipientId, $this->urlKind($body), $body, null);
+            $id = (new Message())->send($me, $recipientId, $this->urlKind($body), $body, null, $replyToId);
         } else {
             $this->sendError($request, 'Nachricht darf nicht leer sein.', $recipientId);
         }
 
-        if ($json) {
+        if ($request->wantsJson()) {
             $this->ok(['id' => $id]);
         }
         $this->redirect('messages/thread?with=' . $recipientId);
     }
 
-    /** Share a post via DM (kind = post). */
     public function share(Request $request): void
     {
         $this->requireAuth($request);
@@ -139,14 +136,73 @@ final class MessageController extends Controller
         }
 
         (new Message())->send($me, $recipientId, 'post', $note !== '' ? $note : null, $postId);
-
         if ($request->wantsJson()) {
             $this->ok(['redirect' => url('messages/thread?with=' . $recipientId)]);
         }
         $this->redirect('messages/thread?with=' . $recipientId);
     }
 
-    /** Real-time polling: new messages since ?after= + peer typing flag. */
+    /** Edit own message (body). */
+    public function edit(Request $request): void
+    {
+        $this->requireAuth($request);
+        $this->requireCsrf($request);
+        $id = $request->intQuery('id');
+        if ($id === null) {
+            $this->fail('Missing message id.', 422);
+        }
+        $messages = new Message();
+        if (!$messages->isOwnedBy($id, (int) Auth::id())) {
+            $this->fail('Du darfst nur eigene Nachrichten bearbeiten.', 403);
+        }
+        $body = trim(strip_tags($request->raw('body')));
+        if ($body === '') {
+            $this->fail('Nachricht darf nicht leer sein.', 422);
+        }
+        if (mb_strlen($body) > 2000) {
+            $this->fail('Nachricht ist zu lang.', 422);
+        }
+        $messages->edit($id, $body);
+        $this->ok(['id' => $id, 'body' => $body]);
+    }
+
+    /** Soft-delete own message. */
+    public function delete(Request $request): void
+    {
+        $this->requireAuth($request);
+        $this->requireCsrf($request);
+        $id = $request->intQuery('id');
+        if ($id === null) {
+            $this->fail('Missing message id.', 422);
+        }
+        $messages = new Message();
+        if (!$messages->isOwnedBy($id, (int) Auth::id())) {
+            $this->fail('Du darfst nur eigene Nachrichten löschen.', 403);
+        }
+        $messages->softDelete($id);
+        $this->ok(['id' => $id]);
+    }
+
+    /** Toggle an emoji reaction on a message in the user's conversation. */
+    public function react(Request $request): void
+    {
+        $this->requireAuth($request);
+        $this->requireCsrf($request);
+        $me = (int) Auth::id();
+
+        $id = $request->intQuery('id');
+        $emoji = trim(strip_tags((string) $request->input('emoji', '')));
+        if ($id === null || $emoji === '' || mb_strlen($emoji) > 8) {
+            $this->fail('Ungültige Reaktion.', 422);
+        }
+        if (!(new Message())->participates($id, $me)) {
+            $this->fail('Nicht erlaubt.', 403);
+        }
+        $active = (new MessageReaction())->toggle($id, $me, $emoji);
+        $this->ok(['id' => $id, 'emoji' => $emoji, 'active' => $active]);
+    }
+
+    /** Real-time polling: new messages + revisions (edits/deletes) + reactions. */
     public function poll(Request $request): void
     {
         $this->requireAuth($request);
@@ -156,44 +212,25 @@ final class MessageController extends Controller
             $this->fail('Missing peer id.', 422);
         }
         $after = (int) ($request->query('after', '0') ?? 0);
+        $rev = (int) ($request->query('rev', '0') ?? 0);
 
         $messages = new Message();
         $new = $messages->since($me, $otherId, $after);
         if ($new !== []) {
             $messages->markRead($me, $otherId);
         }
-
-        $previews = $this->previewsFor($new);
-        $lastId = $after;
-        $rendered = [];
-        foreach ($new as $m) {
-            $lastId = max($lastId, (int) $m['id']);
-            $pid = $m['shared_post_id'] !== null ? (int) $m['shared_post_id'] : null;
-            $rendered[] = [
-                'id'   => (int) $m['id'],
-                'mine' => (int) $m['sender_id'] === $me,
-                'kind' => $m['kind'],
-                'ts'   => strtotime((string) $m['created_at']),
-                'text' => (string) ($m['body'] ?? ''),
-                'html' => View::partial('partials.message', ['m' => $m, 'me' => $me, 'preview' => $pid ? $previews[$pid] : null]),
-            ];
-        }
+        $revisions = $rev > 0 ? $messages->revisionsSince($me, $otherId, $rev, $after) : [];
 
         $this->ok([
-            'messages' => $rendered,
-            'lastId'   => $lastId,
-            'typing'   => $messages->peerTyping($me, $otherId),
+            'messages'  => array_map(fn ($m) => $this->renderMessage($m, $me), $new),
+            'revisions' => array_map(fn ($m) => ['id' => (int) $m['id'], 'html' => $this->bubbleHtml($m, $me)], $revisions),
+            'reactions' => (new MessageReaction())->forConversation($me, $otherId),
+            'typing'    => $messages->peerTyping($me, $otherId),
+            'lastId'    => $new === [] ? $after : (int) end($new)['id'],
+            'rev'       => time(),
         ]);
     }
 
-    /** Total unread DM count for the nav badge (live polling). */
-    public function unread(Request $request): void
-    {
-        $this->requireAuth($request);
-        $this->ok(['count' => (new Message())->unreadCount((int) Auth::id())]);
-    }
-
-    /** Record that the current user is typing to ?with=. */
     public function typing(Request $request): void
     {
         $this->requireAuth($request);
@@ -205,23 +242,23 @@ final class MessageController extends Controller
         $this->ok([]);
     }
 
-    /** Stream a DM attachment (participants only). */
+    public function unread(Request $request): void
+    {
+        $this->requireAuth($request);
+        $this->ok(['count' => (new Message())->unreadCount((int) Auth::id())]);
+    }
+
     public function media(Request $request): void
     {
         $this->requireAuth($request);
         $id = $request->intQuery('id');
         $media = $id !== null ? (new MessageMedia())->findForParticipant($id, (int) Auth::id()) : null;
-
         if ($media === null) {
             http_response_code(404);
             exit;
         }
-
         $data = $media['data'];
         $inline = in_array($media['kind'], self::INLINE_KINDS, true);
-
-        // Inline only known-safe media types; everything else downloads. nosniff
-        // stops the browser from re-interpreting the content type.
         header('Content-Type: ' . ($inline ? $media['mime'] : 'application/octet-stream'));
         header('X-Content-Type-Options: nosniff');
         if (!$inline) {
@@ -234,6 +271,34 @@ final class MessageController extends Controller
     }
 
     /* ---------- helpers ---------- */
+
+    private function renderMessage(array $m, int $me): array
+    {
+        return [
+            'id'   => (int) $m['id'],
+            'mine' => (int) $m['sender_id'] === $me,
+            'ts'   => (int) strtotime((string) $m['created_at']),
+            'text' => (string) ($m['body'] ?? ''),
+            'html' => $this->bubbleHtml($m, $me),
+        ];
+    }
+
+    private function bubbleHtml(array $m, int $me): string
+    {
+        $preview = $m['shared_post_id'] !== null ? (new Post())->preview((int) $m['shared_post_id']) : null;
+        return View::partial('partials.message', ['m' => $m, 'me' => $me, 'preview' => $preview]);
+    }
+
+    private function replyTarget(Request $request, int $me, int $recipientId): ?int
+    {
+        $raw = $request->input('reply_to', '');
+        if ($raw === null || !ctype_digit((string) $raw)) {
+            return null;
+        }
+        $id = (int) $raw;
+        // The referenced message must belong to this conversation.
+        return (new Message())->participates($id, $me) ? $id : null;
+    }
 
     private function sendError(Request $request, string $message, int $recipientId): never
     {
@@ -256,6 +321,29 @@ final class MessageController extends Controller
             }
         }
         return $previews;
+    }
+
+    /** Flatten PHP's multi-file $_FILES into a list of single-file arrays. */
+    private function normalizeFiles(array $files): array
+    {
+        if (empty($files['name'])) {
+            return [];
+        }
+        $names = (array) $files['name'];
+        $out = [];
+        foreach ($names as $i => $name) {
+            if (($files['error'][$i] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+                continue;
+            }
+            $out[] = [
+                'name'     => $name,
+                'type'     => $files['type'][$i] ?? '',
+                'tmp_name' => $files['tmp_name'][$i] ?? '',
+                'error'    => $files['error'][$i] ?? UPLOAD_ERR_NO_FILE,
+                'size'     => $files['size'][$i] ?? 0,
+            ];
+        }
+        return $out;
     }
 
     private function validateMedia(array $file): ?string
@@ -284,7 +372,6 @@ final class MessageController extends Controller
         return 'file';
     }
 
-    /** Classify a text body as a media URL, a link, or plain text. */
     private function urlKind(string $text): string
     {
         if (preg_match('#^https?://\S+$#i', $text) && !preg_match('#\s#', $text)) {

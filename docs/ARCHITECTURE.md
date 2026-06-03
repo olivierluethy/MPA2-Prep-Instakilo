@@ -72,11 +72,12 @@ access (`Config::get('db.host')`).
 ### Data model
 
 `users`, `posts`, `post_images` (many per post, ordered), `followers`, `likes`,
-`comments`, `saved_posts`, `reposts`, `messages` (DMs; `kind` + nullable
-`shared_post_id`, `ON DELETE SET NULL`), `message_media` (DM attachment blobs) and
-`dm_typing` (typing signal). Foreign keys cascade on delete, and `UNIQUE`
-constraints make likes/follows/saves/reposts idempotent. Image and attachment
-bytes are stored as `LONGBLOB` and streamed via controllers.
+`comments`, `saved_posts`, `reposts`, `messages` (DMs; `kind`, `shared_post_id`,
+`reply_to_id`, `edited_at`, `deleted_at`), `message_media` (attachment blobs,
+many per message via `sort_order`), `message_reactions` (emoji per user/message)
+and `dm_typing`. Foreign keys cascade on delete, and `UNIQUE` constraints make
+likes/follows/saves/reposts/reactions idempotent. Image and attachment bytes are
+stored as `LONGBLOB` and streamed via controllers.
 
 ### Refinements (post-modernization)
 
@@ -154,6 +155,43 @@ filtering avoids server round-trips; `stats` is batched and id-capped; media/blo
 are cached (`Cache-Control`/`ETag`) and never base64-inlined. At larger scale the
 next steps would be message pagination, moving blobs to object storage, and a
 push transport — all isolated behind the current endpoints/models.
+
+### DM expansion round (multi-media, reactions, replies, edit/delete)
+
+**Schema:** `messages` gained `reply_to_id` (self-FK, `ON DELETE SET NULL`),
+`edited_at`, `deleted_at`; `message_media` gained `sort_order`; new
+`message_reactions` (`UNIQUE(message_id,user_id,emoji)`).
+
+**Multi-attachment storage:** a message is **not** duplicated per file. One
+`messages` row (kind `media`) owns N `message_media` rows ordered by `sort_order`;
+the model hydrates each message with its `media[]` in one batched
+`WHERE message_id IN (…)` query (no N+1). The bubble renders them in a grid, each
+attachment individually viewable (image/video) or downloadable (file) through the
+participant-scoped `/messages/media` endpoint.
+
+**Reaction & reply data model:** reactions are rows in `message_reactions`;
+`toggle()` flips a row, and `forConversation()` aggregates `emoji → {count, mine}`
+per message in a single grouped query (the whole conversation, bounded). Replies
+are a nullable self-reference `reply_to_id`; the model attaches a small `reply`
+preview (author + snippet) so a bubble can quote and link to its target. Reactions
+and edits/deletes propagate to the other session through the **poll** response
+(`reactions` map + `revisions` list keyed on a `rev` epoch cursor), so existing
+bubbles update live without new messages.
+
+**Time-filtering fix:** timestamps are now UTC end-to-end (PHP
+`date_default_timezone_set('UTC')` + MySQL `SET time_zone='+00:00'`), and the
+client timeline buckets the **epoch range** (`min..max` seconds) into fixed
+buckets instead of calendar days — so filtering is correct at second/minute/hour
+granularity, including dense same-day (and same-second) conversations. The old
+day-bucketed slider (which assumed ≥1-day gaps) is gone.
+
+**Emoji picker:** a dependency-free picker (categories, search, localStorage
+recents) inserts at the input caret and dispatches `input` so the typing signal
+still fires.
+
+**Soft delete:** deletes set `deleted_at` and blank the body/attachments but keep
+the row, preserving conversation flow and reply references; the bubble shows
+"Nachricht gelöscht".
 
 ## 2. What changed and why
 

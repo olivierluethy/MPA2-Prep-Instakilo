@@ -126,15 +126,20 @@ CREATE TABLE IF NOT EXISTS messages (
     id             INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
     sender_id      INT      NOT NULL,
     recipient_id   INT      NOT NULL,
-    -- text | post | image | gif | video | file | link
+    -- text | post | link | media (media = one or more uploaded attachments)
+    -- (image | gif | video are still used for URL-only media in body)
     kind           VARCHAR(20) NOT NULL DEFAULT 'text',
     body           VARCHAR(2000) DEFAULT NULL,
     shared_post_id INT      DEFAULT NULL,
+    reply_to_id    INT      DEFAULT NULL,   -- referenced message (reply)
     is_read        TINYINT(1) NOT NULL DEFAULT 0,
+    edited_at      DATETIME DEFAULT NULL,   -- set when the body is edited
+    deleted_at     DATETIME DEFAULT NULL,   -- soft delete (record kept)
     created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_msg_sender    FOREIGN KEY (sender_id)      REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_msg_recipient FOREIGN KEY (recipient_id)   REFERENCES users (id) ON DELETE CASCADE,
     CONSTRAINT fk_msg_post      FOREIGN KEY (shared_post_id) REFERENCES posts (id) ON DELETE SET NULL,
+    CONSTRAINT fk_msg_reply     FOREIGN KEY (reply_to_id)    REFERENCES messages (id) ON DELETE SET NULL,
     INDEX idx_msg_pair (sender_id, recipient_id, created_at),
     INDEX idx_msg_inbox (recipient_id, created_at)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
@@ -149,9 +154,25 @@ CREATE TABLE IF NOT EXISTS message_media (
     mime       VARCHAR(150) NOT NULL,
     file_name  VARCHAR(255) NOT NULL,
     file_size  INT          NOT NULL DEFAULT 0,
+    sort_order INT          NOT NULL DEFAULT 0,  -- order within the message
     data       LONGBLOB     NOT NULL,
     CONSTRAINT fk_media_message FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
-    INDEX idx_media_message (message_id)
+    INDEX idx_media_message (message_id, sort_order)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- message_reactions  (emoji reactions; one per user per emoji per message)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS message_reactions (
+    id         INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    message_id INT         NOT NULL,
+    user_id    INT         NOT NULL,
+    emoji      VARCHAR(16) NOT NULL,
+    created_at DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_reaction (message_id, user_id, emoji),
+    CONSTRAINT fk_react_message FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
+    CONSTRAINT fk_react_user    FOREIGN KEY (user_id)    REFERENCES users (id)    ON DELETE CASCADE,
+    INDEX idx_react_message (message_id)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- ---------------------------------------------------------------------------

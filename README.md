@@ -16,11 +16,12 @@ for users and posts. Anonymous visitors see public posts; logged-in users get a
 chronological timeline (with an **All / Following** toggle) that includes reposts
 from their network. Users upload multi-image posts (with a swipeable slider) and a
 rich-text description, can edit or delete their own posts, keep a saved-posts
-collection, and DM each other in **real time** — sending text, images, GIFs,
-videos, files and links (with a leave-site confirmation), with content-type /
-fuzzy / time-range filters. Likes, comments and the DM badge update live across
-sessions (polling). Post creation supports images by file, URL or clipboard paste,
-plus location autocomplete and "use my location".
+collection, and DM each other in **real time** — multi-attachment messages
+(images, GIFs, videos, files), an emoji picker, message **edit / delete / reply /
+reactions**, links (with a leave-site confirmation), and content-type / fuzzy /
+time-range filters. Likes, comments and the DM badge update live across sessions
+(polling). Post creation supports images by file, URL or clipboard paste, plus
+location autocomplete and "use my location".
 
 This repository is a **full modernization** of an older procedural PHP project. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for what changed and why.
@@ -68,8 +69,8 @@ seconds; the page styles itself once `public/css/app.css` has been written.
 │   │                   #   Csrf, Validator, View, HtmlSanitizer, Request, ...
 │   ├── Controllers/    # Home, Auth, Profile, Post, Follow, Search,
 │   │                   #   Message, Location — thin
-│   ├── Models/         # User, Post, PostImage, Like, Follow, Comment,
-│   │                   #   Save, Repost, Message, MessageMedia
+│   ├── Models/         # User, Post, PostImage, Like, Follow, Comment, Save,
+│   │                   #   Repost, Message, MessageMedia, MessageReaction
 │   └── Views/          # Templates: layouts/, partials/, <page>/
 ├── config/
 │   ├── config.php      # Single config source (reads env vars)

@@ -62,6 +62,9 @@ $router->get('messages', 'MessageController@index');
 $router->get('messages/thread', 'MessageController@thread'); // ?with=
 $router->post('messages/send', 'MessageController@send');
 $router->post('messages/share', 'MessageController@share');  // ?id= (postId)
+$router->post('messages/edit', 'MessageController@edit');    // ?id= (messageId)
+$router->post('messages/delete', 'MessageController@delete'); // ?id= (messageId)
+$router->post('messages/react', 'MessageController@react');  // ?id= (messageId), emoji=
 $router->get('messages/poll', 'MessageController@poll');     // ?with=&after= -> new msgs
 $router->get('messages/unread', 'MessageController@unread');  // -> {count} for nav badge
 $router->post('messages/typing', 'MessageController@typing'); // ?with=

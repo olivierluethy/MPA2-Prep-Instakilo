@@ -271,24 +271,35 @@ Conversation list (latest message + unread count per participant).
 Thread view; marks incoming messages read. Shared posts render a preview + link.
 
 #### `POST /messages/send`
-`multipart/form-data`. Fields: `recipient` (user id), optional `body` (≤2000),
-optional `media` (uploaded file). Message **kind** is derived:
-- uploaded file → `image` / `gif` / `video` / `file` (by MIME);
-- a bare media URL in `body` → `image` / `gif` / `video`;
-- a body containing a URL → `link`; otherwise `text`.
-AJAX → `{ "id": 42 }`; otherwise redirects to the thread.
+`multipart/form-data`. Fields: `recipient`, optional `body` (≤2000), optional
+`reply_to` (message id), and **`media[]`** (zero or more uploaded files). With
+attachments the message kind is `media` (each file stored as a `message_media`
+row, ordered); otherwise a bare media URL → `image`/`gif`/`video`, a body with a
+URL → `link`, else `text`. AJAX → `{ "id": 42 }`.
 
 #### `POST /messages/share?id={postId}`
-Share a post via DM (kind `post`). Fields: `recipient`, optional `body`. The
-sender must be able to see the post (`403` otherwise).
+Share a post via DM (kind `post`). Fields: `recipient`, optional `body`.
 
-#### `GET /messages/poll?with={userId}&after={lastId}`
-Real-time cursor. Returns messages newer than `lastId` as ready-to-insert HTML
-plus a `typing` flag; marks incoming messages read.
+#### `POST /messages/edit?id={messageId}`  *(author-only)*
+Edit a message body → `{ "id", "body" }`; sets `edited_at`. `403` if not author.
+
+#### `POST /messages/delete?id={messageId}`  *(author-only)*
+Soft-delete (sets `deleted_at`, blanks body + attachments; row kept). `403` if not author.
+
+#### `POST /messages/react?id={messageId}`
+Toggle an emoji reaction. Fields: `emoji` (≤8 chars). Must be a conversation
+participant (`403`). → `{ "id", "emoji", "active": true|false }`.
+
+#### `GET /messages/poll?with={userId}&after={lastId}&rev={epoch}`
+Real-time cursor. Returns **new** messages (`id > after`) as ready-to-insert HTML,
+**revisions** (messages edited/deleted since `rev`, id ≤ after) to swap in place,
+the full **reactions** map for the conversation, and a `typing` flag.
 ```json
 { "success": true, "data": {
-  "messages": [ { "id": 43, "mine": false, "kind": "image", "ts": 1717450000, "text": "", "html": "<div …>" } ],
-  "lastId": 43, "typing": true
+  "messages":  [ { "id": 43, "mine": false, "ts": 1717450000, "text": "", "html": "<div …>" } ],
+  "revisions": [ { "id": 12, "html": "<div …>" } ],
+  "reactions": { "12": [ { "emoji": "👍", "count": 2, "mine": true } ] },
+  "lastId": 43, "rev": 1717450123, "typing": true
 } }
 ```
 

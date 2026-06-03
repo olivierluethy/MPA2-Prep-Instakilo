@@ -49,6 +49,8 @@ final class Database
                     PDO::ATTR_EMULATE_PREPARES   => false,
                 ]
             );
+            // Keep the DB session in UTC so DATETIME values are timezone-consistent.
+            self::$pdo->exec("SET time_zone = '+00:00'");
         } catch (PDOException $e) {
             // Never leak credentials/DSN to the client.
             if (Config::get('app.debug')) {

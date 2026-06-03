@@ -20,6 +20,10 @@ use App\Core\Router;
 
 Config::load();
 
+// All timestamps are handled in UTC end-to-end (DB session tz is also set to UTC
+// in the Database layer) so message time filtering is consistent and correct.
+date_default_timezone_set('UTC');
+
 // Harden the session cookie before it is started.
 $secure = (($_SERVER['HTTPS'] ?? '') === 'on')
     || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
