@@ -71,9 +71,24 @@ access (`Config::get('db.host')`).
 
 ### Data model
 
-`users`, `posts`, `post_images` (many per post, ordered), `followers`, `likes`.
-Foreign keys with `ON DELETE CASCADE`, and `UNIQUE` constraints make likes/follows
-idempotent. Image bytes are stored as `LONGBLOB` and streamed via controllers.
+`users`, `posts`, `post_images` (many per post, ordered), `followers`, `likes`,
+`comments` (one per user/post, `post_id`+`created_at` indexed). Foreign keys with
+`ON DELETE CASCADE`, and `UNIQUE` constraints make likes/follows idempotent. Image
+bytes are stored as `LONGBLOB` and streamed via controllers.
+
+### Refinements (post-modernization)
+
+- **Consistent dates** — `format_datetime()` / `format_date()` helpers render every
+  post/comment date in one readable style ("June 3, 2026, 21:14").
+- **Comments** — `Comment` model + `/posts/comment` (add) and `/posts/comments`
+  (paginated list) endpoints; plain-text, CSRF-protected, escaped on output. The
+  feed embeds a 2-comment preview per post via a single window-function query.
+- **Image slider** — a `translateX` track (`data-carousel-track`) shows exactly
+  one image at a time with a smooth slide and no overlap, replacing the old
+  opacity-stacked images.
+- **User search** — `SearchController` + `User::search()` (bound LIKE with escaped
+  metacharacters); the nav box queries `/search` with a 200 ms debounce and links
+  results straight to the profile page.
 
 ## 2. What changed and why
 
@@ -116,9 +131,11 @@ front controller + assets, `resources/css/app.css`, `db/init/01-schema.sql`,
 - **Image storage in MySQL** (`LONGBLOB`). Kept by design for zero-setup
   containerization; for scale, move to object storage / filesystem and keep only
   references. The serving endpoint already isolates this choice.
-- **No pagination** on the feed/profile yet — fine for the project's scale; add
-  keyset pagination as data grows.
-- **Search box** in the nav is a placeholder (it was non-functional originally too).
+- **No pagination** on the feed/profile yet (comments *are* paginated) — fine for
+  the project's scale; add keyset pagination as data grows.
+- **Schema change**: the `comments` table was added to `db/init/01-schema.sql`.
+  The init scripts only run on a *fresh* database, so existing local stacks need a
+  `docker compose down -v && docker compose up` (or apply the table manually).
 - **No automated test suite** — verification was done end-to-end against the running
   stack. Adding PHPUnit for models/sanitizer and a smoke test would harden CI.
 - **Tailwind dev rebuilds** rely on the `assets` watcher service; the production

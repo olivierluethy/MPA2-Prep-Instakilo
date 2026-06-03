@@ -39,7 +39,7 @@ final class Post extends Model
              GROUP BY p.id, u.username
              ORDER BY like_count DESC, p.created_at DESC'
         );
-        return $this->attachImages($rows);
+        return $this->hydrate($rows);
     }
 
     /**
@@ -62,7 +62,7 @@ final class Post extends Model
              ORDER BY like_count DESC, p.created_at DESC',
             ['viewer' => $userId, 'owner' => $userId, 'follower' => $userId]
         );
-        return $this->attachImages($rows);
+        return $this->hydrate($rows);
     }
 
     /**
@@ -97,7 +97,7 @@ final class Post extends Model
              ORDER BY p.created_at DESC",
             $params
         );
-        return $this->attachImages($rows);
+        return $this->hydrate($rows);
     }
 
     public function find(int $id): ?array
@@ -129,10 +129,10 @@ final class Post extends Model
     }
 
     /**
-     * Attach an ordered list of image ids to each post row in one extra query
-     * (avoids the N+1 problem and base64-inlining of the old views).
+     * Hydrate post rows with their images and a comment preview, each in a
+     * single batched query (avoids the N+1 problem and base64-inlining).
      */
-    private function attachImages(array $posts): array
+    private function hydrate(array $posts): array
     {
         if ($posts === []) {
             return [];
@@ -141,22 +141,54 @@ final class Post extends Model
         $ids = array_column($posts, 'id');
         $placeholders = implode(',', array_fill(0, count($ids), '?'));
 
-        $stmt = $this->db->prepare(
+        // --- images (ordered) ---
+        $imgStmt = $this->db->prepare(
             "SELECT post_id, id FROM post_images
              WHERE post_id IN ({$placeholders})
              ORDER BY post_id, sort_order, id"
         );
-        $stmt->execute($ids);
+        $imgStmt->execute($ids);
+        $imagesByPost = [];
+        foreach ($imgStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $imagesByPost[(int) $row['post_id']][] = (int) $row['id'];
+        }
 
-        $byPost = [];
-        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-            $byPost[(int) $row['post_id']][] = (int) $row['id'];
+        // --- comment preview: the 2 most recent comments + total per post, in
+        //     one query using window functions (efficient, no N+1) ---
+        $commentStmt = $this->db->prepare(
+            "SELECT x.id, x.post_id, x.user_id, x.body, x.created_at, x.username, x.total
+             FROM (
+                SELECT c.id, c.post_id, c.user_id, c.body, c.created_at, u.username,
+                       ROW_NUMBER() OVER (PARTITION BY c.post_id ORDER BY c.created_at DESC, c.id DESC) AS rn,
+                       COUNT(*)     OVER (PARTITION BY c.post_id) AS total
+                FROM comments c JOIN users u ON u.id = c.user_id
+                WHERE c.post_id IN ({$placeholders})
+             ) x
+             WHERE x.rn <= 2
+             ORDER BY x.post_id, x.created_at ASC, x.id ASC"
+        );
+        $commentStmt->execute($ids);
+        $commentsByPost = [];
+        $commentCount = [];
+        foreach ($commentStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $pid = (int) $row['post_id'];
+            $commentCount[$pid] = (int) $row['total'];
+            $commentsByPost[$pid][] = [
+                'id'         => (int) $row['id'],
+                'user_id'    => (int) $row['user_id'],
+                'username'   => $row['username'],
+                'body'       => $row['body'],
+                'created_at' => $row['created_at'],
+            ];
         }
 
         foreach ($posts as &$post) {
-            $post['images'] = $byPost[(int) $post['id']] ?? [];
-            $post['like_count'] = (int) $post['like_count'];
-            $post['liked_by_me'] = (bool) $post['liked_by_me'];
+            $id = (int) $post['id'];
+            $post['images']        = $imagesByPost[$id] ?? [];
+            $post['like_count']    = (int) $post['like_count'];
+            $post['liked_by_me']   = (bool) $post['liked_by_me'];
+            $post['comments']      = $commentsByPost[$id] ?? [];
+            $post['comment_count'] = $commentCount[$id] ?? 0;
         }
         unset($post);
 

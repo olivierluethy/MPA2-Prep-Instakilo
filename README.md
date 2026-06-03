@@ -10,10 +10,11 @@
 
 ## Overview
 
-Instakilo lets users share photo posts, follow each other and like posts. Anonymous
-visitors see public posts; logged-in users get a personalized feed (public posts +
-posts from people they follow + their own), can upload multi-image posts with a rich
-text description, and manage their profile.
+Instakilo lets users share photo posts, follow each other, like and comment on
+posts, and search for other users. Anonymous visitors see public posts; logged-in
+users get a personalized feed (public posts + posts from people they follow + their
+own), can upload multi-image posts (with a swipeable slider) and a rich-text
+description, and manage their profile.
 
 This repository is a **full modernization** of an older procedural PHP project. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for what changed and why.
@@ -59,8 +60,9 @@ seconds; the page styles itself once `public/css/app.css` has been written.
 ├── app/
 │   ├── Core/           # Framework: Router, Database, Controller, Model, Auth,
 │   │                   #   Csrf, Validator, View, HtmlSanitizer, Request, ...
-│   ├── Controllers/    # HTTP entry points (thin)
-│   ├── Models/         # Data access (one per table/aggregate)
+│   ├── Controllers/    # HTTP entry points (Home, Auth, Profile, Post,
+│   │                   #   Follow, Search) — thin
+│   ├── Models/         # Data access: User, Post, PostImage, Like, Follow, Comment
 │   └── Views/          # Templates: layouts/, partials/, <page>/
 ├── config/
 │   ├── config.php      # Single config source (reads env vars)

@@ -154,3 +154,53 @@ Authenticated, CSRF-protected, idempotent (UNIQUE constraint). JSON:
 #### `GET /posts/image?id={imageId}`
 Streams a post image blob with `Cache-Control` + `ETag` (supports `304`). `404`
 if the image doesn't exist.
+
+### Comments
+
+Comment bodies are **plain text**: markup is stripped on write and the text is
+escaped on output. Dates are returned pre-formatted (`"June 3, 2026, 21:14"`).
+
+#### `POST /posts/comment?id={postId}`
+Authenticated, CSRF-protected. Add a comment.
+
+| Field         | Required | Notes              |
+|---------------|----------|--------------------|
+| `body`        | yes      | 1..1000 chars      |
+| `_csrf_token` | yes      |                    |
+
+Success `201`:
+```json
+{ "success": true, "data": {
+  "comment": { "id": 7, "user_id": 1, "username": "LE FOU",
+               "body": "Nice shot!", "created_at": "June 3, 2026, 21:14" },
+  "commentCount": 4
+} }
+```
+`422` empty/too long · `404` unknown post.
+
+#### `GET /posts/comments?id={postId}&page={n}`
+Public, read-only. Paginated comment list (10 per page, oldest first).
+
+```json
+{ "success": true, "data": {
+  "comments": [ { "id": 7, "user_id": 1, "username": "LE FOU",
+                  "body": "Nice shot!", "created_at": "June 3, 2026, 21:14" } ],
+  "page": 1, "total": 4, "hasMore": false
+} }
+```
+
+The feed/profile pages already embed a preview of the 2 most recent comments per
+post (fetched in one batched window-function query — no N+1).
+
+### Search
+
+#### `GET /search?q={term}`
+Public. Returns up to 8 users whose username contains `term` (case-insensitive).
+The term is bound as a parameter and LIKE metacharacters are escaped, so it is
+injection- and wildcard-safe. Empty `q` returns an empty list.
+
+```json
+{ "success": true, "data": { "users": [ { "id": 1, "username": "LE FOU" } ] } }
+```
+
+Each result links to `GET /profile/visit?id={id}`.

@@ -21,6 +21,7 @@ $needsEditor = Auth::check();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= e(Csrf::token()) ?>">
+    <meta name="base-path" content="<?= e((string) config('app.base_path', '')) ?>">
     <title><?= e($title) ?></title>
     <link rel="icon" href="<?= asset('assets/favicon.ico') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">

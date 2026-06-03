@@ -38,5 +38,10 @@ $router->post('posts/store', 'PostController@store');
 $router->post('posts/like', 'PostController@like');          // ?id=
 $router->post('posts/unlike', 'PostController@unlike');      // ?id=
 $router->get('posts/image', 'PostController@image');         // ?id= -> serves blob
+$router->post('posts/comment', 'PostController@comment');    // ?id= -> add comment
+$router->get('posts/comments', 'PostController@comments');   // ?id=&page= -> list
+
+/* ---------- Search ---------- */
+$router->get('search', 'SearchController@users');            // ?q= -> JSON users
 
 return $router;

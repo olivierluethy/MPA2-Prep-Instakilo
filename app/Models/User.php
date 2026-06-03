@@ -106,4 +106,31 @@ final class User extends Model
             ['id' => $id]
         );
     }
+
+    /**
+     * Search users by username (case-insensitive substring match).
+     *
+     * The term is bound as a parameter (injection-safe) and LIKE metacharacters
+     * (% _ \) are escaped so they are matched literally. The username column is
+     * indexed (UNIQUE), so the lookup is efficient.
+     *
+     * @return array<int, array{id:int, username:string}>
+     */
+    public function search(string $term, int $limit = 8): array
+    {
+        $term = trim($term);
+        if ($term === '') {
+            return [];
+        }
+        $like = '%' . addcslashes($term, '%_\\') . '%';
+        $limit = max(1, min(20, $limit)); // clamp, then inline (LIMIT can't bind)
+
+        return $this->fetchAll(
+            "SELECT id, username FROM users
+             WHERE username LIKE :q
+             ORDER BY username ASC
+             LIMIT {$limit}",
+            ['q' => $like]
+        );
+    }
 }

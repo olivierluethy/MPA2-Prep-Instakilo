@@ -5,7 +5,7 @@
   "description": "Instakilo frontend assets — Tailwind CSS build + Quill editor vendoring.",
   "scripts": {
     "build": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --minify && node scripts/copy-vendor.js",
-    "watch": "tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch"
+    "watch": "node scripts/copy-vendor.js && tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --minify && tailwindcss -i ./resources/css/app.css -o ./public/css/app.css --watch"
   },
   "devDependencies": {
     "tailwindcss": "^3.4.17"

@@ -59,3 +59,59 @@ if (!function_exists('config')) {
         return Config::get($key, $default);
     }
 }
+
+if (!function_exists('format_datetime')) {
+    /**
+     * Format a datetime string for display in a single, consistent style across
+     * the whole app, e.g. "June 3, 2026, 14:45" (date + 24h time).
+     *
+     * Returns an empty string for null/empty/unparseable input so callers can
+     * use it unconditionally.
+     */
+    function format_datetime(?string $value): string
+    {
+        if ($value === null || trim($value) === '') {
+            return '';
+        }
+        try {
+            return (new DateTimeImmutable($value))->format('F j, Y, H:i');
+        } catch (Exception) {
+            return '';
+        }
+    }
+}
+
+if (!function_exists('format_date')) {
+    /**
+     * Date-only variant (no time), e.g. "June 1, 2026" — used for the optional
+     * "photo taken on" date which has no time component.
+     */
+    function format_date(?string $value): string
+    {
+        if ($value === null || trim($value) === '') {
+            return '';
+        }
+        try {
+            return (new DateTimeImmutable($value))->format('F j, Y');
+        } catch (Exception) {
+            return '';
+        }
+    }
+}
+
+if (!function_exists('iso_datetime')) {
+    /**
+     * Machine-readable timestamp for the <time datetime="…"> attribute.
+     */
+    function iso_datetime(?string $value): string
+    {
+        if ($value === null || trim($value) === '') {
+            return '';
+        }
+        try {
+            return (new DateTimeImmutable($value))->format('c');
+        } catch (Exception) {
+            return '';
+        }
+    }
+}

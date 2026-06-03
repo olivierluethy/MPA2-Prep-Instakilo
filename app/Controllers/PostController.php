@@ -9,12 +9,13 @@ use App\Core\Controller;
 use App\Core\HtmlSanitizer;
 use App\Core\Request;
 use App\Core\Validator;
+use App\Models\Comment;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\PostImage;
 
 /**
- * Posts: creation (multi-image upload), likes and image streaming.
+ * Posts: creation (multi-image upload), likes, comments and image streaming.
  */
 final class PostController extends Controller
 {
@@ -98,6 +99,80 @@ final class PostController extends Controller
     public function unlike(Request $request): void
     {
         $this->toggleLike($request, false);
+    }
+
+    /**
+     * Add a comment to a post. Authenticated + CSRF-protected. JSON response.
+     */
+    public function comment(Request $request): void
+    {
+        $this->requireAuth($request);
+        $this->requireCsrf($request);
+
+        $postId = $request->intQuery('id');
+        if ($postId === null) {
+            $this->fail('Missing post id.', 422);
+        }
+
+        // Comments are plain text: strip any markup, then escape on output.
+        $body = trim(strip_tags($request->raw('body')));
+
+        $validator = (new Validator(['body' => $body]))
+            ->required('body', 'Kommentar darf nicht leer sein.')
+            ->max('body', 1000, 'Kommentar ist zu lang (max. 1000 Zeichen).');
+        if ($validator->fails()) {
+            $this->fail((string) $validator->firstError(), 422);
+        }
+
+        $comments = new Comment();
+        if (!$comments->postExists($postId)) {
+            $this->fail('Beitrag nicht gefunden.', 404);
+        }
+
+        $created = $comments->create($postId, (int) Auth::id(), $body);
+
+        $this->ok([
+            'comment' => [
+                'id'         => (int) $created['id'],
+                'user_id'    => (int) $created['user_id'],
+                'username'   => $created['username'],
+                'body'       => $created['body'],
+                'created_at' => format_datetime($created['created_at']),
+            ],
+            'commentCount' => $comments->countForPost($postId),
+        ], 201);
+    }
+
+    /**
+     * Paginated comment list for a post. Public (read-only). JSON response.
+     */
+    public function comments(Request $request): void
+    {
+        $postId = $request->intQuery('id');
+        if ($postId === null) {
+            $this->fail('Missing post id.', 422);
+        }
+
+        $page = max(1, (int) ($request->query('page', '1') ?? 1));
+        $model = new Comment();
+        $rows = $model->forPost($postId, $page);
+        $total = $model->countForPost($postId);
+
+        $this->ok([
+            'comments' => array_map(
+                static fn (array $r): array => [
+                    'id'         => (int) $r['id'],
+                    'user_id'    => (int) $r['user_id'],
+                    'username'   => $r['username'],
+                    'body'       => $r['body'],
+                    'created_at' => format_datetime($r['created_at']),
+                ],
+                $rows
+            ),
+            'page'    => $page,
+            'total'   => $total,
+            'hasMore' => ($page * Comment::PER_PAGE) < $total,
+        ]);
     }
 
     /**

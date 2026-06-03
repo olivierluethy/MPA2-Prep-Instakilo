@@ -1,11 +1,12 @@
 <?php
 
 use App\Core\Csrf;
+use App\Core\View;
 
 /**
  * A single feed post.
  *
- * @var array $post        post row with images[], like_count, liked_by_me
+ * @var array $post        post row with images[], like_count, liked_by_me, comments[], comment_count
  * @var bool  $isLoggedIn
  */
 $images = $post['images'] ?? [];
@@ -28,16 +29,18 @@ $multi  = count($images) > 1;
         <?php endif; ?>
     </header>
 
-    <!-- Images -->
+    <!-- Images: a sliding track shows exactly one image at a time -->
     <?php if ($images): ?>
-        <div class="relative aspect-square w-full bg-gray-100 dark:bg-gray-800" data-carousel>
-            <?php foreach ($images as $i => $imgId): ?>
-                <img src="<?= url('posts/image?id=' . (int) $imgId) ?>"
-                     alt="<?= e($post['title']) ?>"
-                     loading="lazy"
-                     class="absolute inset-0 h-full w-full object-cover transition-opacity duration-300 <?= $i === 0 ? 'opacity-100' : 'opacity-0' ?>"
-                     data-carousel-slide>
-            <?php endforeach; ?>
+        <div class="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800" data-carousel>
+            <div class="flex h-full w-full transition-transform duration-300 ease-out" data-carousel-track>
+                <?php foreach ($images as $imgId): ?>
+                    <img src="<?= url('posts/image?id=' . (int) $imgId) ?>"
+                         alt="<?= e($post['title']) ?>"
+                         loading="lazy"
+                         class="h-full w-full shrink-0 grow-0 basis-full object-cover"
+                         data-carousel-slide>
+                <?php endforeach; ?>
+            </div>
 
             <?php if ($multi): ?>
                 <button type="button" data-carousel-prev aria-label="Vorheriges Bild"
@@ -88,8 +91,16 @@ $multi  = count($images) > 1;
             <div class="prose-content"><?= $post['description'] ?></div>
         <?php endif; ?>
 
-        <?php if (!empty($post['taken_on'])): ?>
-            <time class="text-xs text-gray-400" datetime="<?= e($post['taken_on']) ?>"><?= e($post['taken_on']) ?></time>
+        <!-- Post creation date — consistent "June 3, 2026, 14:45" format -->
+        <?php if (!empty($post['created_at'])): ?>
+            <time class="text-xs text-gray-400" datetime="<?= e(iso_datetime($post['created_at'])) ?>">
+                <?= e(format_datetime($post['created_at'])) ?>
+                <?php if (!empty($post['taken_on'])): ?>
+                    · aufgenommen am <?= e(format_date($post['taken_on'])) ?>
+                <?php endif; ?>
+            </time>
         <?php endif; ?>
+
+        <?= View::partial('partials.comments', ['post' => $post, 'isLoggedIn' => $isLoggedIn]) ?>
     </div>
 </article>
