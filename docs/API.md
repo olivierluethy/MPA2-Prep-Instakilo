@@ -271,8 +271,57 @@ Conversation list (latest message + unread count per participant).
 Thread view; marks incoming messages read. Shared posts render a preview + link.
 
 #### `POST /messages/send`
-Fields: `recipient` (user id), `body` (1..2000). Redirects to the thread.
+`multipart/form-data`. Fields: `recipient` (user id), optional `body` (≤2000),
+optional `media` (uploaded file). Message **kind** is derived:
+- uploaded file → `image` / `gif` / `video` / `file` (by MIME);
+- a bare media URL in `body` → `image` / `gif` / `video`;
+- a body containing a URL → `link`; otherwise `text`.
+AJAX → `{ "id": 42 }`; otherwise redirects to the thread.
 
 #### `POST /messages/share?id={postId}`
-Share a post via DM. Fields: `recipient` (user id), optional `body`. The sender
-must be able to see the post (`403` otherwise). JSON → `{ "redirect": "..." }`.
+Share a post via DM (kind `post`). Fields: `recipient`, optional `body`. The
+sender must be able to see the post (`403` otherwise).
+
+#### `GET /messages/poll?with={userId}&after={lastId}`
+Real-time cursor. Returns messages newer than `lastId` as ready-to-insert HTML
+plus a `typing` flag; marks incoming messages read.
+```json
+{ "success": true, "data": {
+  "messages": [ { "id": 43, "mine": false, "kind": "image", "ts": 1717450000, "text": "", "html": "<div …>" } ],
+  "lastId": 43, "typing": true
+} }
+```
+
+#### `POST /messages/typing?with={userId}`
+Records a short-lived "is typing" signal (read back via `poll`).
+
+#### `GET /messages/media?id={mediaId}`
+Streams a DM attachment **to participants only** (`404` otherwise). Images/GIFs/
+videos are served inline (`nosniff`); all other types download as attachments.
+
+#### `GET /messages/unread`
+`{ "count": n }` — total unread DMs for the live nav badge.
+
+### Live counters
+
+#### `GET /posts/stats?ids=1,2,3`
+Public. Current like/comment/repost counts for up to 60 posts, used by the feed
+to reconcile cards across sessions.
+```json
+{ "success": true, "data": { "stats": [ { "id": 1, "likes": 4, "comments": 2, "reposts": 1 } ] } }
+```
+
+### Locations
+
+#### `GET /locations?q={term}`
+Autocomplete from a static city dataset → `{ "locations": ["Zurich, Switzerland", …] }`.
+
+#### `GET /locations/nearest?lat={lat}&lng={lng}`
+Nearest city to a coordinate (for "use my location") → `{ "location": "Zurich, Switzerland" }`.
+
+### Posts — image by URL
+
+`POST /posts/store` also accepts `image_urls[]`: each URL is downloaded
+**server-side with SSRF protection** (http/https only, private/reserved IPs
+blocked, no redirects, size-capped, verified as a real image) and stored as a
+blob alongside uploaded files.

@@ -53,6 +53,43 @@ if (!function_exists('old')) {
     }
 }
 
+if (!function_exists('linkify')) {
+    /**
+     * Escape plain text and turn http(s) URLs into safe, clickable links flagged
+     * with data-external (the client shows a "leave Instakilo?" confirm).
+     */
+    function linkify(string $text): string
+    {
+        $parts = preg_split('#(https?://[^\s<]+)#i', $text, -1, PREG_SPLIT_DELIM_CAPTURE) ?: [];
+        $out = '';
+        foreach ($parts as $i => $part) {
+            if ($i % 2 === 1) {
+                $u = e($part);
+                $out .= '<a href="' . $u . '" data-external rel="noopener noreferrer nofollow" target="_blank" class="underline break-all">' . $u . '</a>';
+            } else {
+                $out .= nl2br(e($part));
+            }
+        }
+        return $out;
+    }
+}
+
+if (!function_exists('format_bytes')) {
+    function format_bytes(int $bytes): string
+    {
+        if ($bytes < 1024) {
+            return $bytes . ' B';
+        }
+        $units = ['KB', 'MB', 'GB'];
+        $i = -1;
+        do {
+            $bytes /= 1024;
+            $i++;
+        } while ($bytes >= 1024 && $i < count($units) - 1);
+        return round($bytes, 1) . ' ' . $units[$i];
+    }
+}
+
 if (!function_exists('config')) {
     function config(string $key, mixed $default = null): mixed
     {

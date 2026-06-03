@@ -155,6 +155,38 @@ final class Post extends Model
         );
     }
 
+    /**
+     * Live public counters (likes/comments/reposts) for a set of posts, used to
+     * reconcile feed cards across sessions without a page reload.
+     *
+     * @param array<int, int> $ids
+     * @return array<int, array{id:int, likes:int, comments:int, reposts:int}>
+     */
+    public function stats(array $ids): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if ($ids === []) {
+            return [];
+        }
+        $in = implode(',', $ids); // pure ints — safe to inline
+        $rows = $this->fetchAll(
+            "SELECT p.id,
+                    (SELECT COUNT(*) FROM likes l    WHERE l.post_id = p.id) AS likes,
+                    (SELECT COUNT(*) FROM comments c WHERE c.post_id = p.id) AS comments,
+                    (SELECT COUNT(*) FROM reposts r  WHERE r.post_id = p.id) AS reposts
+             FROM posts p WHERE p.id IN ({$in})"
+        );
+        return array_map(
+            static fn (array $r): array => [
+                'id'       => (int) $r['id'],
+                'likes'    => (int) $r['likes'],
+                'comments' => (int) $r['comments'],
+                'reposts'  => (int) $r['reposts'],
+            ],
+            $rows
+        );
+    }
+
     /** Lightweight preview (title, author, cover image) for DM shares. */
     public function preview(int $id): ?array
     {

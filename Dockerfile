@@ -41,9 +41,9 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-av
 
 # Reasonable upload limits (kept in sync with config/uploads.*).
 RUN { \
-      echo 'upload_max_filesize=8M'; \
-      echo 'post_max_size=64M'; \
-      echo 'memory_limit=256M'; \
+      echo 'upload_max_filesize=32M'; \
+      echo 'post_max_size=96M'; \
+      echo 'memory_limit=320M'; \
     } > /usr/local/etc/php/conf.d/uploads.ini
 
 WORKDIR /var/www/html

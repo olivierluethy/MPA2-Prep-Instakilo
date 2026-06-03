@@ -59,12 +59,15 @@ $needsEditor = Auth::check();
         <?= View::partial('partials.share-modal') ?>
     <?php endif; ?>
 
+    <?= View::partial('partials.link-confirm-modal') ?>
+
     <script src="<?= asset('js/theme.js') ?>" defer></script>
     <script src="<?= asset('js/app.js') ?>" defer></script>
     <?php if ($needsEditor): ?>
         <script src="<?= asset('vendor/quill/quill.js') ?>" defer></script>
         <script src="<?= asset('js/upload.js') ?>" defer></script>
         <script src="<?= asset('js/edit.js') ?>" defer></script>
+        <script src="<?= asset('js/messages.js') ?>" defer></script>
     <?php endif; ?>
 </body>
 

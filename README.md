@@ -16,7 +16,11 @@ for users and posts. Anonymous visitors see public posts; logged-in users get a
 chronological timeline (with an **All / Following** toggle) that includes reposts
 from their network. Users upload multi-image posts (with a swipeable slider) and a
 rich-text description, can edit or delete their own posts, keep a saved-posts
-collection, and DM each other (including sharing a post with a preview).
+collection, and DM each other in **real time** — sending text, images, GIFs,
+videos, files and links (with a leave-site confirmation), with content-type /
+fuzzy / time-range filters. Likes, comments and the DM badge update live across
+sessions (polling). Post creation supports images by file, URL or clipboard paste,
+plus location autocomplete and "use my location".
 
 This repository is a **full modernization** of an older procedural PHP project. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for what changed and why.
@@ -62,10 +66,10 @@ seconds; the page styles itself once `public/css/app.css` has been written.
 ├── app/
 │   ├── Core/           # Framework: Router, Database, Controller, Model, Auth,
 │   │                   #   Csrf, Validator, View, HtmlSanitizer, Request, ...
-│   ├── Controllers/    # HTTP entry points (Home, Auth, Profile, Post,
-│   │                   #   Follow, Search, Message) — thin
+│   ├── Controllers/    # Home, Auth, Profile, Post, Follow, Search,
+│   │                   #   Message, Location — thin
 │   ├── Models/         # User, Post, PostImage, Like, Follow, Comment,
-│   │                   #   Save, Repost, Message
+│   │                   #   Save, Repost, Message, MessageMedia
 │   └── Views/          # Templates: layouts/, partials/, <page>/
 ├── config/
 │   ├── config.php      # Single config source (reads env vars)
@@ -141,5 +145,6 @@ All endpoints, request/response formats and auth requirements are documented in
 | `DB_USER` / `DB_PASSWORD` | instakilo | Database credentials              |
 | `DB_ROOT_PASSWORD`     | rootsecret  | MySQL root password (container)      |
 | `DB_PORT_HOST`         | 3307        | Host port exposing MySQL             |
-| `UPLOAD_MAX_FILE_SIZE` | 5242880     | Max bytes per image                  |
+| `UPLOAD_MAX_FILE_SIZE` | 5242880     | Max bytes per post image             |
 | `UPLOAD_MAX_FILES`     | 10          | Max images per post                  |
+| `UPLOAD_MAX_MEDIA_SIZE`| 26214400    | Max bytes per DM attachment          |

@@ -42,6 +42,7 @@ $router->post('posts/delete', 'PostController@delete');      // ?id= -> delete p
 $router->post('posts/like', 'PostController@like');          // ?id=
 $router->post('posts/unlike', 'PostController@unlike');      // ?id=
 $router->get('posts/image', 'PostController@image');         // ?id= -> serves blob
+$router->get('posts/stats', 'PostController@stats');         // ?ids=1,2 -> live counters
 
 /* ---------- Comments ---------- */
 $router->post('posts/comment', 'PostController@comment');           // ?id= -> add
@@ -61,8 +62,16 @@ $router->get('messages', 'MessageController@index');
 $router->get('messages/thread', 'MessageController@thread'); // ?with=
 $router->post('messages/send', 'MessageController@send');
 $router->post('messages/share', 'MessageController@share');  // ?id= (postId)
+$router->get('messages/poll', 'MessageController@poll');     // ?with=&after= -> new msgs
+$router->get('messages/unread', 'MessageController@unread');  // -> {count} for nav badge
+$router->post('messages/typing', 'MessageController@typing'); // ?with=
+$router->get('messages/media', 'MessageController@media');   // ?id= -> serves attachment
 
 /* ---------- Search ---------- */
 $router->get('search', 'SearchController@users');            // ?q= -> JSON users + posts
+
+/* ---------- Locations ---------- */
+$router->get('locations', 'LocationController@search');          // ?q= -> suggestions
+$router->get('locations/nearest', 'LocationController@nearest'); // ?lat=&lng= -> city
 
 return $router;

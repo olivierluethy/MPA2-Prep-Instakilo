@@ -538,4 +538,94 @@
             if (!wrap.contains(e.target)) dropdown.classList.add('hidden');
         });
     }
+
+    /* ---------- Comment input reveal (Instagram-style) ---------- */
+    document.addEventListener('click', function (event) {
+        const btn = event.target.closest('[data-comment-open]');
+        if (!btn) return;
+        const box = btn.closest('article')?.querySelector('[data-comment-box]');
+        if (!box) return;
+        const hidden = box.classList.toggle('hidden');
+        box.classList.toggle('flex', !hidden);
+        if (!hidden) box.querySelector('[data-comment-input]')?.focus();
+    });
+
+    /* ---------- External-link confirmation ("leave Instakilo?") ---------- */
+    const linkModal = document.querySelector('[data-link-modal]');
+    if (linkModal) {
+        const urlEl = linkModal.querySelector('[data-link-url]');
+        const goEl = linkModal.querySelector('[data-link-go]');
+        const closeLink = () => {
+            linkModal.classList.add('hidden');
+            linkModal.classList.remove('flex');
+        };
+        document.addEventListener('click', function (event) {
+            const a = event.target.closest('a[href]');
+            if (!a || linkModal.contains(a)) return;
+            const href = a.getAttribute('href') || '';
+            if (!/^https?:\/\//i.test(href)) return; // internal/relative → allow
+            try {
+                if (new URL(href, location.href).origin === location.origin) return;
+            } catch (e) {
+                return;
+            }
+            event.preventDefault();
+            urlEl.textContent = href;
+            goEl.href = href;
+            linkModal.classList.remove('hidden');
+            linkModal.classList.add('flex');
+        });
+        linkModal.querySelector('[data-link-cancel]').addEventListener('click', closeLink);
+        goEl.addEventListener('click', closeLink);
+        linkModal.addEventListener('click', (e) => {
+            if (e.target === linkModal) closeLink();
+        });
+    }
+
+    /* ---------- Live counters: reconcile feed cards with backend truth ---------- */
+    function feedPosts() {
+        return Array.from(document.querySelectorAll('article[data-post-id]'));
+    }
+    if (feedPosts().length) {
+        const pollStats = () => {
+            const ids = [...new Set(feedPosts().map((a) => a.dataset.postId))];
+            if (!ids.length) return;
+            getJson(appUrl('posts/stats?ids=' + ids.join(',')))
+                .then(({ ok, body }) => {
+                    if (!ok || !body.success) return;
+                    const map = {};
+                    body.data.stats.forEach((s) => (map[s.id] = s));
+                    feedPosts().forEach((a) => {
+                        const s = map[a.dataset.postId];
+                        if (!s) return;
+                        const lc = a.querySelector('[data-like-count]');
+                        if (lc) lc.textContent = s.likes;
+                        const cc = a.querySelector('[data-comments-count]');
+                        if (cc) cc.textContent = s.comments;
+                    });
+                })
+                .catch(() => {});
+        };
+        setInterval(pollStats, 15000);
+    }
+
+    /* ---------- Live DM unread badge ---------- */
+    const dmBadge = document.querySelector('[data-dm-badge]');
+    if (dmBadge && currentUserId) {
+        const pollUnread = () => {
+            getJson(appUrl('messages/unread'))
+                .then(({ ok, body }) => {
+                    if (!ok || !body.success) return;
+                    const n = body.data.count;
+                    if (n > 0) {
+                        dmBadge.textContent = n > 9 ? '9+' : n;
+                        dmBadge.classList.remove('hidden');
+                    } else {
+                        dmBadge.classList.add('hidden');
+                    }
+                })
+                .catch(() => {});
+        };
+        setInterval(pollUnread, 20000);
+    }
 })();

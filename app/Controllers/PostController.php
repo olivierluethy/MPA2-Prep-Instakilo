@@ -51,43 +51,54 @@ final class PostController extends Controller
             $validator->addError('taken_on', 'Ungültiges Datum.');
         }
 
-        // Collect and validate the uploaded images.
+        // Collect and validate uploaded files...
         $files = $this->normalizeFiles($request->files('images'));
-        if ($files === []) {
-            $validator->addError('images', 'Bitte mindestens ein Bild auswählen.');
-        }
-        if (count($files) > (int) config('uploads.max_files')) {
-            $validator->addError('images', 'Zu viele Bilder (max. ' . config('uploads.max_files') . ').');
-        }
         foreach ($files as $i => $file) {
             if (($error = $this->validateImage($file)) !== null) {
-                $validator->addError('images', "Bild " . ($i + 1) . ": {$error}");
+                $validator->addError('images', 'Bild ' . ($i + 1) . ": {$error}");
                 break;
             }
+        }
+
+        // ...and images supplied by URL (downloaded server-side, SSRF-guarded).
+        $urls = array_values(array_filter(
+            array_map('trim', (array) ($_POST['image_urls'] ?? [])),
+            static fn ($u) => $u !== ''
+        ));
+        $urlImages = [];
+        if ($validator->passes()) {
+            foreach ($urls as $i => $u) {
+                $result = $this->downloadImage($u);
+                if (is_string($result)) {
+                    $validator->addError('images', 'Bild-URL ' . ($i + 1) . ": {$result}");
+                    break;
+                }
+                $urlImages[] = $result;
+            }
+        }
+
+        $total = count($files) + count($urlImages);
+        if ($total < 1) {
+            $validator->addError('images', 'Bitte mindestens ein Bild hinzufügen.');
+        }
+        if ($total > (int) config('uploads.max_files')) {
+            $validator->addError('images', 'Zu viele Bilder (max. ' . config('uploads.max_files') . ').');
         }
 
         if ($validator->fails()) {
             $this->fail((string) $validator->firstError(), 422, $validator->errors());
         }
 
-        // Persist the post, then its images in submitted order.
-        $postId = (new Post())->create(
-            (int) Auth::id(),
-            $title,
-            $description,
-            $location,
-            $takenOn,
-            $isPublic
-        );
+        // Persist the post, then its images: uploads first, then URL images.
+        $postId = (new Post())->create((int) Auth::id(), $title, $description, $location, $takenOn, $isPublic);
 
         $images = new PostImage();
-        foreach (array_values($files) as $order => $file) {
-            $images->add(
-                $postId,
-                mime_content_type($file['tmp_name']),
-                file_get_contents($file['tmp_name']),
-                $order
-            );
+        $order = 0;
+        foreach (array_values($files) as $file) {
+            $images->add($postId, mime_content_type($file['tmp_name']), file_get_contents($file['tmp_name']), $order++);
+        }
+        foreach ($urlImages as $img) {
+            $images->add($postId, $img['mime'], $img['data'], $order++);
         }
 
         $this->ok(['postId' => $postId, 'redirect' => url('home')], 201);
@@ -492,6 +503,22 @@ final class PostController extends Controller
     }
 
     /**
+     * Live public counters for a set of posts (likes/comments/reposts). Used by
+     * the feed to reconcile cards across sessions without a reload. Public,
+     * read-only, capped to avoid abuse.
+     */
+    public function stats(Request $request): void
+    {
+        $raw = (string) $request->query('ids', '');
+        $ids = array_slice(
+            array_filter(array_map('intval', explode(',', $raw)), static fn ($n) => $n > 0),
+            0,
+            60
+        );
+        $this->ok(['stats' => (new Post())->stats($ids)]);
+    }
+
+    /**
      * Stream a post image blob with caching headers.
      */
     public function image(Request $request): void
@@ -596,5 +623,55 @@ final class PostController extends Controller
     {
         $d = \DateTime::createFromFormat('Y-m-d', $date);
         return $d !== false && $d->format('Y-m-d') === $date;
+    }
+
+    /**
+     * Download an image from a URL with SSRF protection.
+     *
+     * @return array{mime:string, data:string}|string bytes+mime, or an error message
+     */
+    private function downloadImage(string $url): array|string
+    {
+        if (!preg_match('#^https?://#i', $url)) {
+            return 'Nur http(s)-URLs erlaubt.';
+        }
+        $host = parse_url($url, PHP_URL_HOST);
+        if (!$host) {
+            return 'Ungültige URL.';
+        }
+        // Block requests to private/reserved addresses (SSRF).
+        $ip = gethostbyname($host);
+        if (
+            filter_var($ip, FILTER_VALIDATE_IP)
+            && !filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)
+        ) {
+            return 'Diese URL ist nicht erlaubt.';
+        }
+
+        $max = (int) config('uploads.max_file_size');
+        $ctx = stream_context_create(['http' => [
+            'timeout'        => 5,
+            'follow_location' => 0, // no redirects → no redirect-based SSRF
+            'ignore_errors'  => true,
+            'user_agent'     => 'InstakiloBot/1.0',
+        ]]);
+        $fp = @fopen($url, 'rb', false, $ctx);
+        if ($fp === false) {
+            return 'Konnte die URL nicht laden.';
+        }
+        $data = @stream_get_contents($fp, $max + 1);
+        fclose($fp);
+
+        if ($data === false || $data === '') {
+            return 'Leere Antwort von der URL.';
+        }
+        if (strlen($data) > $max) {
+            return 'Bild ist zu groß (max. ' . round($max / 1024 / 1024, 1) . ' MB).';
+        }
+        $info = @getimagesizefromstring($data);
+        if ($info === false || !in_array($info['mime'], config('uploads.allowed_mime', []), true)) {
+            return 'Kein gültiges Bild (JPEG/PNG/GIF/WebP).';
+        }
+        return ['mime' => $info['mime'], 'data' => $data];
     }
 }

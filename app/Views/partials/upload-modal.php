@@ -31,6 +31,12 @@ use App\Core\Csrf;
                     <p class="text-xs">JPEG, PNG, GIF, WebP · max. <?= (int) config('uploads.max_files') ?> Bilder · je max. <?= round(((int) config('uploads.max_file_size')) / 1024 / 1024, 1) ?> MB</p>
                     <input data-file-input type="file" name="images[]" accept="image/jpeg,image/png,image/gif,image/webp" multiple class="hidden">
                 </div>
+                <!-- Add image by URL -->
+                <div class="mt-2 flex gap-2">
+                    <input type="url" data-image-url-input class="input !py-1.5 text-sm" placeholder="Bild-URL einfügen …" autocomplete="off">
+                    <button type="button" data-add-url class="btn-secondary shrink-0 !py-1.5">Hinzufügen</button>
+                </div>
+                <p class="mt-1 text-xs text-gray-400">Tipp: Bild mit <kbd class="rounded border px-1 dark:border-gray-700">Strg/Cmd+V</kbd> direkt einfügen.</p>
                 <!-- Thumbnails (drag to reorder, click ✕ to remove) -->
                 <ul data-preview-list class="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4"></ul>
                 <p data-upload-error class="mt-1 hidden text-sm text-rose-600 dark:text-rose-400"></p>
@@ -49,9 +55,18 @@ use App\Core\Csrf;
             </div>
 
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div>
+                <div class="relative">
                     <label for="post-location" class="label">Ort</label>
-                    <input id="post-location" type="text" name="location" class="input" maxlength="255" placeholder="z.&nbsp;B. Zürich">
+                    <div class="flex gap-2">
+                        <input id="post-location" type="text" name="location" class="input" maxlength="255"
+                               placeholder="z.&nbsp;B. Zürich" autocomplete="off" data-location-input>
+                        <button type="button" data-use-location class="btn-secondary shrink-0 !px-2.5"
+                                title="Aktuellen Standort verwenden" aria-label="Aktuellen Standort verwenden">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z"/></svg>
+                        </button>
+                    </div>
+                    <div data-location-suggestions
+                         class="absolute z-10 mt-1 hidden w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-800 dark:bg-gray-900"></div>
                 </div>
                 <div>
                     <label for="post-date" class="label">Datum</label>

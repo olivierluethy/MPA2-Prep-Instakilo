@@ -72,9 +72,10 @@ access (`Config::get('db.host')`).
 ### Data model
 
 `users`, `posts`, `post_images` (many per post, ordered), `followers`, `likes`,
-`comments`, `saved_posts`, `reposts`, and `messages` (DMs; nullable
-`shared_post_id` for a shared post, `ON DELETE SET NULL`). Foreign keys cascade on
-delete, and `UNIQUE` constraints make likes/follows/saves/reposts idempotent. Image
+`comments`, `saved_posts`, `reposts`, `messages` (DMs; `kind` + nullable
+`shared_post_id`, `ON DELETE SET NULL`), `message_media` (DM attachment blobs) and
+`dm_typing` (typing signal). Foreign keys cascade on delete, and `UNIQUE`
+constraints make likes/follows/saves/reposts idempotent. Image and attachment
 bytes are stored as `LONGBLOB` and streamed via controllers.
 
 ### Refinements (post-modernization)
@@ -109,6 +110,50 @@ bytes are stored as `LONGBLOB` and streamed via controllers.
 - **Search posts + single-post page** — search now returns users *and* posts;
   `GET /post?id=` renders one post (used by share links, reposts and search).
 - **Compact feed** — narrower single-column cards (`max-w-md`, smaller controls).
+
+### Rich messaging, real-time & UX round
+
+**Data model additions:** `messages.kind` (text|post|image|gif|video|file|link),
+`message_media` (DM attachment blobs, cascade-deleted), `dm_typing` (short-lived
+typing signal). DM attachments are stored as blobs and streamed via
+`/messages/media` with a **participant-only** SQL join (authorization in the
+query) — inline only for known-safe types, everything else forced to download
+with `nosniff`.
+
+**Real-time choice — polling (not WebSockets):** the stack is PHP + Apache with
+no long-lived worker process, and a core constraint is "avoid unnecessary
+dependencies / keep `docker compose up` single-stack". WebSockets would require a
+separate Node/Ratchet/Swoole service and a second container. Polling fits the
+architecture with zero new dependencies and is efficient because every poll is
+**incremental and indexed**:
+- DM thread: `GET /messages/poll?with=&after={lastId}` every 3 s returns only
+  rows with `id > lastId` (uses the `(sender,recipient,created_at)` index) plus a
+  typing flag; the server renders the bubble HTML so sanitization stays in PHP.
+- Feed counters: `GET /posts/stats?ids=…` every 15 s reconciles like/comment/
+  repost counts (capped at 60 ids) — always backend truth, never fake increments.
+- Nav DM badge: `GET /messages/unread` every 20 s.
+Trade-off: updates are near-real-time (bounded by the interval), not instant push.
+For this project's scale that is the right balance; the polling layer could later
+be swapped for SSE/WebSockets behind the same JSON endpoints without touching the
+UI.
+
+**DM filters (all client-side, combinable):** content-type, fuzzy text, and a
+time-range histogram operate on already-loaded messages via `data-*` attributes —
+no extra queries. Fuzzy search uses **Levenshtein distance** with a length-scaled
+threshold; the timeline buckets messages per day, renders an activity histogram
+(hover shows date + count) and two range sliders hide out-of-range messages.
+
+**Post creation:** images can be added by file, drag-drop, **URL** (downloaded
+server-side, SSRF-guarded) or **clipboard paste**; location has autocomplete and
+nearest-city autofill from a **local** city dataset (`config/cities.php`) so no
+external geocoding API is needed. External links anywhere (DMs, post text)
+trigger a "leave Instakilo?" confirmation before navigating.
+
+**Performance considerations:** incremental/indexed polls; per-conversation client
+filtering avoids server round-trips; `stats` is batched and id-capped; media/blobs
+are cached (`Cache-Control`/`ETag`) and never base64-inlined. At larger scale the
+next steps would be message pagination, moving blobs to object storage, and a
+push transport — all isolated behind the current endpoints/models.
 
 ## 2. What changed and why
 

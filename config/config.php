@@ -42,5 +42,7 @@ return [
         // Maximum number of images allowed per post.
         'max_files'     => (int) $env('UPLOAD_MAX_FILES', '10'),
         'allowed_mime'  => ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+        // DM attachments (any file type; size-limited). Default 25 MB.
+        'max_media_size' => (int) $env('UPLOAD_MAX_MEDIA_SIZE', (string) (25 * 1024 * 1024)),
     ],
 ];

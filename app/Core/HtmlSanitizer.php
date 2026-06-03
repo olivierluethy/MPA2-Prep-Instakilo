@@ -115,10 +115,13 @@ final class HtmlSanitizer
             }
         }
 
-        // Harden links opened in a new context.
+        // Harden links opened in a new context; flag for the leave-site confirm.
         if ($tag === 'a' && $el->hasAttribute('href')) {
             $el->setAttribute('rel', 'noopener noreferrer nofollow');
             $el->setAttribute('target', '_blank');
+            if (preg_match('#^https?://#i', (string) $el->getAttribute('href'))) {
+                $el->setAttribute('data-external', '');
+            }
         }
 
         // An <img> with no valid src is useless — drop it.

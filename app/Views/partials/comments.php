@@ -48,7 +48,9 @@ $renderComment = static function (array $c) use ($viewerId): void {
     </ul>
 
     <?php if ($isLoggedIn): ?>
-        <form class="mt-2 flex items-center gap-2" method="POST" action="<?= url('posts/comment?id=' . $postId) ?>" data-comment-form>
+        <!-- Hidden until the comment icon is clicked (Instagram-style). -->
+        <form class="mt-2 hidden items-center gap-2" method="POST" action="<?= url('posts/comment?id=' . $postId) ?>"
+              data-comment-form data-comment-box>
             <?= Csrf::field() ?>
             <label class="sr-only" for="comment-<?= $postId ?>">Kommentar</label>
             <input id="comment-<?= $postId ?>" type="text" name="body" maxlength="1000" required

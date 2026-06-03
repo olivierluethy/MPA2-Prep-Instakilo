@@ -126,6 +126,8 @@ CREATE TABLE IF NOT EXISTS messages (
     id             INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
     sender_id      INT      NOT NULL,
     recipient_id   INT      NOT NULL,
+    -- text | post | image | gif | video | file | link
+    kind           VARCHAR(20) NOT NULL DEFAULT 'text',
     body           VARCHAR(2000) DEFAULT NULL,
     shared_post_id INT      DEFAULT NULL,
     is_read        TINYINT(1) NOT NULL DEFAULT 0,
@@ -135,6 +137,33 @@ CREATE TABLE IF NOT EXISTS messages (
     CONSTRAINT fk_msg_post      FOREIGN KEY (shared_post_id) REFERENCES posts (id) ON DELETE SET NULL,
     INDEX idx_msg_pair (sender_id, recipient_id, created_at),
     INDEX idx_msg_inbox (recipient_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- message_media  (uploaded DM attachments: image/gif/video/file blobs)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS message_media (
+    id         INT          NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    message_id INT          NOT NULL,
+    kind       VARCHAR(20)  NOT NULL,            -- image | gif | video | file
+    mime       VARCHAR(150) NOT NULL,
+    file_name  VARCHAR(255) NOT NULL,
+    file_size  INT          NOT NULL DEFAULT 0,
+    data       LONGBLOB     NOT NULL,
+    CONSTRAINT fk_media_message FOREIGN KEY (message_id) REFERENCES messages (id) ON DELETE CASCADE,
+    INDEX idx_media_message (message_id)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- dm_typing  (short-lived "user is typing" signal for real-time polling)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS dm_typing (
+    user_id    INT      NOT NULL,   -- who is typing
+    peer_id    INT      NOT NULL,   -- to whom
+    updated_at DATETIME NOT NULL,
+    PRIMARY KEY (user_id, peer_id),
+    CONSTRAINT fk_typing_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_typing_peer FOREIGN KEY (peer_id) REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- ---------------------------------------------------------------------------
