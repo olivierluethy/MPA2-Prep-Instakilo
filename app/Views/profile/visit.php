@@ -28,7 +28,7 @@ use App\Core\View;
                 <p class="mt-3 text-sm text-gray-700 dark:text-gray-300"><?= e($user['description']) ?></p>
             <?php endif; ?>
 
-            <div class="mt-4">
+            <div class="mt-4 flex justify-center gap-2 sm:justify-start">
                 <?php if (!$isLoggedIn): ?>
                     <a href="<?= url('login') ?>" class="btn-primary">Follow</a>
                 <?php else: ?>
@@ -41,6 +41,7 @@ use App\Core\View;
                             <span data-follow-label><?= $isFollowing ? 'Unfollow' : 'Follow' ?></span>
                         </button>
                     </form>
+                    <a href="<?= url('messages/thread?with=' . (int) $user['id']) ?>" class="btn-secondary">Nachricht</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -57,7 +58,7 @@ use App\Core\View;
         <?php else: ?>
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <?php foreach ($posts as $post): ?>
-                    <?= View::partial('partials.post-card', ['post' => $post, 'isLoggedIn' => $isLoggedIn]) ?>
+                    <?= View::partial('partials.post-card', ['post' => $post, 'isLoggedIn' => $isLoggedIn, 'viewerId' => \App\Core\Auth::id()]) ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

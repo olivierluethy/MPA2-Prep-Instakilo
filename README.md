@@ -10,11 +10,13 @@
 
 ## Overview
 
-Instakilo lets users share photo posts, follow each other, like and comment on
-posts, and search for other users. Anonymous visitors see public posts; logged-in
-users get a personalized feed (public posts + posts from people they follow + their
-own), can upload multi-image posts (with a swipeable slider) and a rich-text
-description, and manage their profile.
+Instakilo lets users share photo posts, follow each other, like, comment on (and
+edit/delete their own comments), save, repost and direct-message posts, and search
+for users and posts. Anonymous visitors see public posts; logged-in users get a
+chronological timeline (with an **All / Following** toggle) that includes reposts
+from their network. Users upload multi-image posts (with a swipeable slider) and a
+rich-text description, can edit or delete their own posts, keep a saved-posts
+collection, and DM each other (including sharing a post with a preview).
 
 This repository is a **full modernization** of an older procedural PHP project. See
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for what changed and why.
@@ -61,8 +63,9 @@ seconds; the page styles itself once `public/css/app.css` has been written.
 │   ├── Core/           # Framework: Router, Database, Controller, Model, Auth,
 │   │                   #   Csrf, Validator, View, HtmlSanitizer, Request, ...
 │   ├── Controllers/    # HTTP entry points (Home, Auth, Profile, Post,
-│   │                   #   Follow, Search) — thin
-│   ├── Models/         # Data access: User, Post, PostImage, Like, Follow, Comment
+│   │                   #   Follow, Search, Message) — thin
+│   ├── Models/         # User, Post, PostImage, Like, Follow, Comment,
+│   │                   #   Save, Repost, Message
 │   └── Views/          # Templates: layouts/, partials/, <page>/
 ├── config/
 │   ├── config.php      # Single config source (reads env vars)

@@ -41,6 +41,16 @@ final class Follow extends Model
         );
     }
 
+    /** Ids of accounts $userId follows. @return array<int, int> */
+    public function followingIds(int $userId): array
+    {
+        $rows = $this->fetchAll(
+            'SELECT user_id FROM followers WHERE follower_id = :id',
+            ['id' => $userId]
+        );
+        return array_map(static fn (array $r): int => (int) $r['user_id'], $rows);
+    }
+
     /** How many accounts follow $userId. */
     public function followerCount(int $userId): int
     {

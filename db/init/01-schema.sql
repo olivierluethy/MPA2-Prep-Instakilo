@@ -92,6 +92,52 @@ CREATE TABLE IF NOT EXISTS comments (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- ---------------------------------------------------------------------------
+-- saved_posts  (a user's personal bookmark collection)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS saved_posts (
+    id         INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT      NOT NULL,
+    post_id    INT      NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_save (user_id, post_id),
+    CONSTRAINT fk_saved_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_saved_post FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
+    INDEX idx_saved_user (user_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- reposts  (a user re-sharing a public post to their own feed)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS reposts (
+    id         INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id    INT      NOT NULL,
+    post_id    INT      NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_repost (user_id, post_id),
+    CONSTRAINT fk_repost_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_repost_post FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
+    INDEX idx_repost_user (user_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- messages  (direct messages; may carry a shared post reference)
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS messages (
+    id             INT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    sender_id      INT      NOT NULL,
+    recipient_id   INT      NOT NULL,
+    body           VARCHAR(2000) DEFAULT NULL,
+    shared_post_id INT      DEFAULT NULL,
+    is_read        TINYINT(1) NOT NULL DEFAULT 0,
+    created_at     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_msg_sender    FOREIGN KEY (sender_id)      REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_msg_recipient FOREIGN KEY (recipient_id)   REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_msg_post      FOREIGN KEY (shared_post_id) REFERENCES posts (id) ON DELETE SET NULL,
+    INDEX idx_msg_pair (sender_id, recipient_id, created_at),
+    INDEX idx_msg_inbox (recipient_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
 -- Seed users (demo). Password for both accounts: "kauz.git"
 -- ---------------------------------------------------------------------------
 INSERT INTO users (username, email, password, description) VALUES

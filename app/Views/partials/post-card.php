@@ -4,21 +4,36 @@ use App\Core\Csrf;
 use App\Core\View;
 
 /**
- * A single feed post.
+ * A single feed post (compact layout).
  *
- * @var array $post        post row with images[], like_count, liked_by_me, comments[], comment_count
- * @var bool  $isLoggedIn
+ * @var array     $post        post row with images[], like_count, liked_by_me,
+ *                             comments[], comment_count, is_saved, is_reposted,
+ *                             reposted_by, is_public
+ * @var bool      $isLoggedIn
+ * @var int|null  $viewerId    current user id (for ownership checks)
  */
-$images = $post['images'] ?? [];
-$liked  = !empty($post['liked_by_me']);
-$multi  = count($images) > 1;
+$viewerId = $viewerId ?? null;
+$images   = $post['images'] ?? [];
+$liked    = !empty($post['liked_by_me']);
+$saved    = !empty($post['is_saved']);
+$reposted = !empty($post['is_reposted']);
+$multi    = count($images) > 1;
+$isOwner  = $isLoggedIn && $viewerId !== null && (int) $post['user_id'] === $viewerId;
+$canRepost = $isLoggedIn && !$isOwner && !empty($post['is_public']);
 ?>
-<article class="card overflow-hidden flex flex-col">
+<article class="card flex flex-col overflow-hidden text-sm" data-post-id="<?= (int) $post['id'] ?>">
+    <?php if (!empty($post['reposted_by'])): ?>
+        <div class="flex items-center gap-1.5 px-3 pt-2 text-xs text-gray-500 dark:text-gray-400">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+            Repost von <span class="font-medium"><?= e($post['reposted_by']) ?></span>
+        </div>
+    <?php endif; ?>
+
     <!-- Author -->
-    <header class="flex items-center gap-3 p-3">
+    <header class="flex items-center gap-2.5 p-2.5">
         <a href="<?= url('profile/visit?id=' . (int) $post['user_id']) ?>" class="shrink-0">
             <img src="<?= url('avatar?id=' . (int) $post['user_id']) ?>" alt=""
-                 class="h-9 w-9 rounded-full object-cover ring-1 ring-gray-300 dark:ring-gray-700">
+                 class="h-8 w-8 rounded-full object-cover ring-1 ring-gray-300 dark:ring-gray-700">
         </a>
         <a href="<?= url('profile/visit?id=' . (int) $post['user_id']) ?>"
            class="font-semibold hover:underline" title="Profil von <?= e($post['username']) ?> ansehen">
@@ -27,21 +42,33 @@ $multi  = count($images) > 1;
         <?php if (!empty($post['location'])): ?>
             <span class="ml-auto truncate text-xs text-gray-500 dark:text-gray-400"><?= e($post['location']) ?></span>
         <?php endif; ?>
+
+        <?php if ($isOwner): ?>
+            <div class="relative <?= empty($post['location']) ? 'ml-auto' : '' ?>" data-dropdown>
+                <button type="button" data-dropdown-toggle class="btn-ghost h-7 w-7 !px-0" aria-label="Beitragsoptionen">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 6.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Zm0 7a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"/></svg>
+                </button>
+                <div data-dropdown-menu class="absolute right-0 z-10 mt-1 hidden w-36 overflow-hidden rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-800 dark:bg-gray-900">
+                    <button type="button" data-edit-post data-post-id="<?= (int) $post['id'] ?>"
+                            class="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-800">Bearbeiten</button>
+                    <form action="<?= url('posts/delete?id=' . (int) $post['id']) ?>" method="POST" data-delete-post>
+                        <?= Csrf::field() ?>
+                        <button type="submit" class="block w-full px-4 py-2 text-left text-sm text-rose-600 hover:bg-gray-100 dark:hover:bg-gray-800">Löschen</button>
+                    </form>
+                </div>
+            </div>
+        <?php endif; ?>
     </header>
 
-    <!-- Images: a sliding track shows exactly one image at a time -->
+    <!-- Images: sliding track, one visible at a time -->
     <?php if ($images): ?>
         <div class="relative aspect-square w-full overflow-hidden bg-gray-100 dark:bg-gray-800" data-carousel>
             <div class="flex h-full w-full transition-transform duration-300 ease-out" data-carousel-track>
                 <?php foreach ($images as $imgId): ?>
-                    <img src="<?= url('posts/image?id=' . (int) $imgId) ?>"
-                         alt="<?= e($post['title']) ?>"
-                         loading="lazy"
-                         class="h-full w-full shrink-0 grow-0 basis-full object-cover"
-                         data-carousel-slide>
+                    <img src="<?= url('posts/image?id=' . (int) $imgId) ?>" alt="<?= e($post['title']) ?>" loading="lazy"
+                         class="h-full w-full shrink-0 grow-0 basis-full object-cover" data-carousel-slide>
                 <?php endforeach; ?>
             </div>
-
             <?php if ($multi): ?>
                 <button type="button" data-carousel-prev aria-label="Vorheriges Bild"
                         class="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white hover:bg-black/60">
@@ -61,46 +88,66 @@ $multi  = count($images) > 1;
     <?php endif; ?>
 
     <!-- Actions + body -->
-    <div class="flex flex-col gap-2 p-3">
-        <div class="flex items-center gap-2">
+    <div class="flex flex-col gap-1.5 p-2.5">
+        <div class="flex items-center gap-3">
+            <!-- Like -->
             <?php if ($isLoggedIn): ?>
-                <form action="<?= url('posts/' . ($liked ? 'unlike' : 'like') . '?id=' . (int) $post['id']) ?>"
-                      method="POST" data-like-form>
+                <form action="<?= url('posts/' . ($liked ? 'unlike' : 'like') . '?id=' . (int) $post['id']) ?>" method="POST" data-like-form>
                     <?= Csrf::field() ?>
-                    <button type="submit" data-like-toggle data-liked="<?= $liked ? '1' : '0' ?>"
-                            data-post-id="<?= (int) $post['id'] ?>"
-                            class="flex items-center text-rose-500 transition hover:scale-110"
-                            aria-pressed="<?= $liked ? 'true' : 'false' ?>" aria-label="Gefällt mir">
-                        <svg class="h-7 w-7" viewBox="0 0 24 24" fill="<?= $liked ? 'currentColor' : 'none' ?>"
-                             stroke="currentColor" stroke-width="1.8" data-like-icon><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                    <button type="submit" data-like-toggle data-liked="<?= $liked ? '1' : '0' ?>" data-post-id="<?= (int) $post['id'] ?>"
+                            class="flex items-center text-rose-500 transition hover:scale-110" aria-pressed="<?= $liked ? 'true' : 'false' ?>" aria-label="Gefällt mir">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="<?= $liked ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="1.8" data-like-icon><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
                     </button>
                 </form>
             <?php else: ?>
                 <a href="<?= url('login') ?>" class="flex items-center text-rose-500 hover:scale-110" aria-label="Zum Liken einloggen">
-                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"/></svg>
                 </a>
             <?php endif; ?>
-            <span class="text-sm font-semibold" data-like-count><?= (int) $post['like_count'] ?></span>
-            <span class="text-sm text-gray-500 dark:text-gray-400">Likes</span>
+            <span class="font-semibold" data-like-count><?= (int) $post['like_count'] ?></span>
+
+            <?php if ($isLoggedIn): ?>
+                <!-- Share via DM -->
+                <button type="button" data-share-post data-post-id="<?= (int) $post['id'] ?>" data-post-title="<?= e($post['title']) ?>"
+                        class="ml-1 flex items-center text-gray-500 hover:text-indigo-500 dark:text-gray-400" aria-label="Per Nachricht teilen">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/></svg>
+                </button>
+
+                <?php if ($canRepost): ?>
+                    <!-- Repost -->
+                    <form action="<?= url('posts/' . ($reposted ? 'unrepost' : 'repost') . '?id=' . (int) $post['id']) ?>" method="POST" data-repost-form>
+                        <?= Csrf::field() ?>
+                        <button type="submit" data-repost-toggle data-reposted="<?= $reposted ? '1' : '0' ?>"
+                                class="flex items-center <?= $reposted ? 'text-emerald-500' : 'text-gray-500 hover:text-emerald-500 dark:text-gray-400' ?>" aria-label="Reposten">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12c0-1.232-.046-2.453-.138-3.662a4.006 4.006 0 0 0-3.7-3.7 48.678 48.678 0 0 0-7.324 0 4.006 4.006 0 0 0-3.7 3.7c-.017.22-.032.441-.046.662M19.5 12l3-3m-3 3-3-3m-12 3c0 1.232.046 2.453.138 3.662a4.006 4.006 0 0 0 3.7 3.7 48.656 48.656 0 0 0 7.324 0 4.006 4.006 0 0 0 3.7-3.7c.017-.22.032-.441.046-.662M4.5 12l3 3m-3-3-3 3"/></svg>
+                        </button>
+                    </form>
+                <?php endif; ?>
+
+                <!-- Save -->
+                <form action="<?= url('posts/' . ($saved ? 'unsave' : 'save') . '?id=' . (int) $post['id']) ?>" method="POST" data-save-form class="ml-auto">
+                    <?= Csrf::field() ?>
+                    <button type="submit" data-save-toggle data-saved="<?= $saved ? '1' : '0' ?>"
+                            class="flex items-center text-gray-700 hover:text-indigo-500 dark:text-gray-200" aria-label="Speichern">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="<?= $saved ? 'currentColor' : 'none' ?>" stroke="currentColor" stroke-width="1.8" data-save-icon><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z"/></svg>
+                    </button>
+                </form>
+            <?php endif; ?>
         </div>
 
         <h2 class="font-semibold"><?= e($post['title']) ?></h2>
 
         <?php if (!empty($post['description'])): ?>
-            <!-- Description is sanitized server-side (HtmlSanitizer) before storage. -->
-            <div class="prose-content"><?= $post['description'] ?></div>
+            <div class="prose-content text-xs"><?= $post['description'] ?></div>
         <?php endif; ?>
 
-        <!-- Post creation date — consistent "June 3, 2026, 14:45" format -->
         <?php if (!empty($post['created_at'])): ?>
             <time class="text-xs text-gray-400" datetime="<?= e(iso_datetime($post['created_at'])) ?>">
                 <?= e(format_datetime($post['created_at'])) ?>
-                <?php if (!empty($post['taken_on'])): ?>
-                    · aufgenommen am <?= e(format_date($post['taken_on'])) ?>
-                <?php endif; ?>
+                <?php if (!empty($post['taken_on'])): ?> · aufgenommen am <?= e(format_date($post['taken_on'])) ?><?php endif; ?>
             </time>
         <?php endif; ?>
 
-        <?= View::partial('partials.comments', ['post' => $post, 'isLoggedIn' => $isLoggedIn]) ?>
+        <?= View::partial('partials.comments', ['post' => $post, 'isLoggedIn' => $isLoggedIn, 'viewerId' => $viewerId]) ?>
     </div>
 </article>

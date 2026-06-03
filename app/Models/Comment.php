@@ -68,4 +68,33 @@ final class Comment extends Model
     {
         return (bool) $this->fetchOne('SELECT 1 FROM posts WHERE id = :id', ['id' => $postId]);
     }
+
+    public function find(int $id): ?array
+    {
+        return $this->fetchOne(
+            'SELECT c.id, c.post_id, c.user_id, c.body, c.created_at, u.username
+             FROM comments c JOIN users u ON u.id = c.user_id
+             WHERE c.id = :id',
+            ['id' => $id]
+        );
+    }
+
+    /** Only the comment's author may edit/delete it. */
+    public function isOwnedBy(int $id, int $userId): bool
+    {
+        return (bool) $this->fetchOne(
+            'SELECT 1 FROM comments WHERE id = :id AND user_id = :user',
+            ['id' => $id, 'user' => $userId]
+        );
+    }
+
+    public function update(int $id, string $body): void
+    {
+        $this->run('UPDATE comments SET body = :body WHERE id = :id', ['body' => $body, 'id' => $id]);
+    }
+
+    public function delete(int $id): void
+    {
+        $this->run('DELETE FROM comments WHERE id = :id', ['id' => $id]);
+    }
 }

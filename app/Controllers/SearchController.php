@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Controllers;
 
+use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Request;
+use App\Models\Post;
 use App\Models\User;
 
 /**
- * User search used by the nav search box. Returns JSON consumed by app.js.
+ * Search for users and posts. Returns JSON consumed by the nav search box.
  */
 final class SearchController extends Controller
 {
@@ -17,20 +19,28 @@ final class SearchController extends Controller
     {
         $query = (string) $request->query('q', '');
 
-        // Require at least one character to avoid dumping the whole table.
         if (trim($query) === '') {
-            $this->ok(['users' => []]);
+            $this->ok(['users' => [], 'posts' => []]);
         }
 
-        $results = (new User())->search($query);
+        $viewerId = Auth::id();
+
+        $userResults = (new User())->search($query);
+        $postResults = (new Post())->search($query, $viewerId);
 
         $this->ok([
             'users' => array_map(
-                static fn (array $u): array => [
-                    'id'       => (int) $u['id'],
-                    'username' => $u['username'],
+                static fn (array $u): array => ['id' => (int) $u['id'], 'username' => $u['username']],
+                $userResults
+            ),
+            'posts' => array_map(
+                static fn (array $p): array => [
+                    'id'       => $p['id'],
+                    'title'    => $p['title'],
+                    'username' => $p['username'],
+                    'imageId'  => $p['cover_image_id'],
                 ],
-                $results
+                $postResults
             ),
         ]);
     }

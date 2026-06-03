@@ -72,8 +72,9 @@ access (`Config::get('db.host')`).
 ### Data model
 
 `users`, `posts`, `post_images` (many per post, ordered), `followers`, `likes`,
-`comments` (one per user/post, `post_id`+`created_at` indexed). Foreign keys with
-`ON DELETE CASCADE`, and `UNIQUE` constraints make likes/follows idempotent. Image
+`comments`, `saved_posts`, `reposts`, and `messages` (DMs; nullable
+`shared_post_id` for a shared post, `ON DELETE SET NULL`). Foreign keys cascade on
+delete, and `UNIQUE` constraints make likes/follows/saves/reposts idempotent. Image
 bytes are stored as `LONGBLOB` and streamed via controllers.
 
 ### Refinements (post-modernization)
@@ -89,6 +90,25 @@ bytes are stored as `LONGBLOB` and streamed via controllers.
 - **User search** — `SearchController` + `User::search()` (bound LIKE with escaped
   metacharacters); the nav box queries `/search` with a 200 ms debounce and links
   results straight to the profile page.
+
+### Social features (engagement round)
+
+- **Comment & post management** — author-only edit/delete for comments
+  (`Comment::isOwnedBy`) and posts (`Post::isOwnedBy`); post edit manages images
+  (remove/reorder/add) with image-count validated **before** mutation; post delete
+  is confirmed client-side and cascades.
+- **Saves & reposts** — `saved_posts` / `reposts` tables with idempotent toggles;
+  `/saved` collection page; reposts of public posts merge into followers'
+  timelines (`HomeController::buildFeed`) with a "Reposted by" banner. The feed is
+  now a **chronological timeline** (the old like-count ordering didn't fit a
+  repost-aware timeline) with an `all` / `following` scope toggle.
+- **Direct messages** — `messages` table + `MessageController` (conversation list,
+  thread, send, share). A post can be shared via DM (preview + link + attribution);
+  the nav shows an unread badge. Bodies are stored stripped of markup and escaped
+  on output.
+- **Search posts + single-post page** — search now returns users *and* posts;
+  `GET /post?id=` renders one post (used by share links, reposts and search).
+- **Compact feed** — narrower single-column cards (`max-w-md`, smaller controls).
 
 ## 2. What changed and why
 

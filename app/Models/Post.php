@@ -37,16 +37,22 @@ final class Post extends Model
              LEFT JOIN likes l ON l.post_id = p.id
              WHERE p.is_public = 1
              GROUP BY p.id, u.username
-             ORDER BY like_count DESC, p.created_at DESC'
+             ORDER BY p.created_at DESC'
         );
-        return $this->hydrate($rows);
+        return $this->hydrate($rows, null);
     }
 
     /**
      * Personalized feed for a logged-in user.
+     *
+     * @param string $scope 'all' (public + own + followed) or
+     *                       'following' (own + followed only)
      */
-    public function feedFor(int $userId): array
+    public function feedFor(int $userId, string $scope = 'all'): array
     {
+        // In the "all" scope, public posts from anyone are included as well.
+        $publicClause = $scope === 'following' ? '' : 'p.is_public = 1 OR ';
+
         $rows = $this->fetchAll(
             'SELECT ' . self::SELECT_FIELDS . ',
                     COUNT(DISTINCT l.id) AS like_count,
@@ -55,14 +61,13 @@ final class Post extends Model
              JOIN users u ON u.id = p.user_id
              LEFT JOIN likes l  ON l.post_id = p.id
              LEFT JOIN likes lm ON lm.post_id = p.id AND lm.user_id = :viewer
-             WHERE p.is_public = 1
-                OR p.user_id = :owner
+             WHERE ' . $publicClause . 'p.user_id = :owner
                 OR p.user_id IN (SELECT f.user_id FROM followers f WHERE f.follower_id = :follower)
              GROUP BY p.id, u.username
-             ORDER BY like_count DESC, p.created_at DESC',
+             ORDER BY p.created_at DESC',
             ['viewer' => $userId, 'owner' => $userId, 'follower' => $userId]
         );
-        return $this->hydrate($rows);
+        return $this->hydrate($rows, $userId);
     }
 
     /**
@@ -97,7 +102,49 @@ final class Post extends Model
              ORDER BY p.created_at DESC",
             $params
         );
-        return $this->hydrate($rows);
+        return $this->hydrate($rows, $viewerId);
+    }
+
+    /**
+     * Hydrated posts for a set of ids, respecting visibility, preserving the
+     * order of $ids. Used by the saved-posts page, reposts and single-post view.
+     *
+     * @param array<int, int> $ids
+     */
+    public function byIds(array $ids, ?int $viewerId): array
+    {
+        $ids = array_values(array_unique(array_map('intval', $ids)));
+        if ($ids === []) {
+            return [];
+        }
+        $in = implode(',', $ids); // pure ints — safe to inline
+
+        $params = [];
+        $likedSelect = '0 AS liked_by_me';
+        $likedJoin = '';
+        $visibility = 'p.is_public = 1';
+        if ($viewerId !== null) {
+            $likedSelect = 'MAX(CASE WHEN lm.user_id IS NOT NULL THEN 1 ELSE 0 END) AS liked_by_me';
+            $likedJoin = 'LEFT JOIN likes lm ON lm.post_id = p.id AND lm.user_id = :viewer';
+            $visibility = '(p.is_public = 1 OR p.user_id = :owner
+                            OR p.user_id IN (SELECT f.user_id FROM followers f WHERE f.follower_id = :follower))';
+            $params = ['viewer' => $viewerId, 'owner' => $viewerId, 'follower' => $viewerId];
+        }
+
+        $rows = $this->fetchAll(
+            'SELECT ' . self::SELECT_FIELDS . ",
+                    COUNT(DISTINCT l.id) AS like_count,
+                    {$likedSelect}
+             FROM posts p
+             JOIN users u ON u.id = p.user_id
+             LEFT JOIN likes l ON l.post_id = p.id
+             {$likedJoin}
+             WHERE p.id IN ({$in}) AND {$visibility}
+             GROUP BY p.id, u.username
+             ORDER BY FIELD(p.id, {$in})",
+            $params
+        );
+        return $this->hydrate($rows, $viewerId);
     }
 
     public function find(int $id): ?array
@@ -105,6 +152,93 @@ final class Post extends Model
         return $this->fetchOne(
             'SELECT p.*, u.username FROM posts p JOIN users u ON u.id = p.user_id WHERE p.id = :id',
             ['id' => $id]
+        );
+    }
+
+    /** Lightweight preview (title, author, cover image) for DM shares. */
+    public function preview(int $id): ?array
+    {
+        return $this->fetchOne(
+            'SELECT p.id, p.title, p.is_public, p.user_id, u.username,
+                    (SELECT pi.id FROM post_images pi WHERE pi.post_id = p.id
+                     ORDER BY pi.sort_order, pi.id LIMIT 1) AS cover_image_id
+             FROM posts p JOIN users u ON u.id = p.user_id
+             WHERE p.id = :id',
+            ['id' => $id]
+        );
+    }
+
+    public function isOwnedBy(int $id, int $userId): bool
+    {
+        return (bool) $this->fetchOne(
+            'SELECT 1 FROM posts WHERE id = :id AND user_id = :user',
+            ['id' => $id, 'user' => $userId]
+        );
+    }
+
+    public function update(int $id, string $title, string $description, string $location, ?string $takenOn, bool $isPublic): void
+    {
+        $this->run(
+            'UPDATE posts SET title = :title, description = :description, location = :location,
+                              taken_on = :taken_on, is_public = :is_public
+             WHERE id = :id',
+            [
+                'title'       => $title,
+                'description' => $description,
+                'location'    => $location,
+                'taken_on'    => $takenOn ?: null,
+                'is_public'   => $isPublic ? 1 : 0,
+                'id'          => $id,
+            ]
+        );
+    }
+
+    /** Deletes the post; images, likes, comments, saves & reposts cascade. */
+    public function delete(int $id): void
+    {
+        $this->run('DELETE FROM posts WHERE id = :id', ['id' => $id]);
+    }
+
+    /**
+     * Search posts by title (visible: public, or the viewer's own).
+     * Injection-safe: bound LIKE with escaped metacharacters.
+     *
+     * @return array<int, array{id:int, title:string, username:string, cover_image_id:?int}>
+     */
+    public function search(string $term, ?int $viewerId, int $limit = 6): array
+    {
+        $term = trim($term);
+        if ($term === '') {
+            return [];
+        }
+        $like = '%' . addcslashes($term, '%_\\') . '%';
+        $limit = max(1, min(20, $limit));
+
+        $where = 'p.is_public = 1';
+        $params = ['q' => $like];
+        if ($viewerId !== null) {
+            $where = '(p.is_public = 1 OR p.user_id = :viewer)';
+            $params['viewer'] = $viewerId;
+        }
+
+        $rows = $this->fetchAll(
+            "SELECT p.id, p.title, u.username,
+                    (SELECT pi.id FROM post_images pi WHERE pi.post_id = p.id
+                     ORDER BY pi.sort_order, pi.id LIMIT 1) AS cover_image_id
+             FROM posts p JOIN users u ON u.id = p.user_id
+             WHERE p.title LIKE :q AND {$where}
+             ORDER BY p.created_at DESC
+             LIMIT {$limit}",
+            $params
+        );
+        return array_map(
+            static fn (array $r): array => [
+                'id'             => (int) $r['id'],
+                'title'          => $r['title'],
+                'username'       => $r['username'],
+                'cover_image_id' => $r['cover_image_id'] !== null ? (int) $r['cover_image_id'] : null,
+            ],
+            $rows
         );
     }
 
@@ -132,7 +266,7 @@ final class Post extends Model
      * Hydrate post rows with their images and a comment preview, each in a
      * single batched query (avoids the N+1 problem and base64-inlining).
      */
-    private function hydrate(array $posts): array
+    private function hydrate(array $posts, ?int $viewerId): array
     {
         if ($posts === []) {
             return [];
@@ -182,6 +316,26 @@ final class Post extends Model
             ];
         }
 
+        // --- viewer-specific flags: saved / reposted by the current user ---
+        $savedIds = [];
+        $repostedIds = [];
+        if ($viewerId !== null) {
+            $savedStmt = $this->db->prepare(
+                "SELECT post_id FROM saved_posts WHERE user_id = ? AND post_id IN ({$placeholders})"
+            );
+            $savedStmt->execute(array_merge([$viewerId], $ids));
+            foreach ($savedStmt->fetchAll(PDO::FETCH_COLUMN) as $pid) {
+                $savedIds[(int) $pid] = true;
+            }
+            $repostStmt = $this->db->prepare(
+                "SELECT post_id FROM reposts WHERE user_id = ? AND post_id IN ({$placeholders})"
+            );
+            $repostStmt->execute(array_merge([$viewerId], $ids));
+            foreach ($repostStmt->fetchAll(PDO::FETCH_COLUMN) as $pid) {
+                $repostedIds[(int) $pid] = true;
+            }
+        }
+
         foreach ($posts as &$post) {
             $id = (int) $post['id'];
             $post['images']        = $imagesByPost[$id] ?? [];
@@ -189,6 +343,11 @@ final class Post extends Model
             $post['liked_by_me']   = (bool) $post['liked_by_me'];
             $post['comments']      = $commentsByPost[$id] ?? [];
             $post['comment_count'] = $commentCount[$id] ?? 0;
+            $post['is_saved']      = isset($savedIds[$id]);
+            $post['is_reposted']   = isset($repostedIds[$id]);
+            // Feed metadata (overridden for repost entries in the controller).
+            $post['event_time']    = $post['created_at'] ?? null;
+            $post['reposted_by']   = null;
         }
         unset($post);
 

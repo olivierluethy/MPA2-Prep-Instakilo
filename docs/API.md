@@ -46,9 +46,14 @@ Missing/invalid token → `403` (JSON) or a redirect back (HTML form).
 
 ### Feed
 
-#### `GET /` · `GET /home`
-Renders the feed. Anonymous → public posts. Authenticated → public + followed +
-own posts, each flagged with `liked_by_me`. Ordered by like count, newest first.
+#### `GET /` · `GET /home?feed={all|following}`
+Renders the feed as a **chronological timeline** (newest first) that merges direct
+posts with **reposts** from the viewer's network (each repost shows a "Reposted by"
+banner). Anonymous → public posts only. Authenticated:
+- `feed=all` (default) — public + followed + own posts.
+- `feed=following` — own + followed posts only.
+
+Each post is flagged with `liked_by_me`, `is_saved`, `is_reposted`.
 
 ### Authentication
 
@@ -200,7 +205,74 @@ The term is bound as a parameter and LIKE metacharacters are escaped, so it is
 injection- and wildcard-safe. Empty `q` returns an empty list.
 
 ```json
-{ "success": true, "data": { "users": [ { "id": 1, "username": "LE FOU" } ] } }
+{ "success": true, "data": {
+  "users": [ { "id": 1, "username": "LE FOU" } ],
+  "posts": [ { "id": 7, "title": "Sunset", "username": "LE FOU", "imageId": 12 } ]
+} }
 ```
 
-Each result links to `GET /profile/visit?id={id}`.
+User results link to `GET /profile/visit?id={id}`; post results to `GET /post?id={id}`.
+Post search is restricted to titles of posts visible to the viewer (public + own).
+
+---
+
+## Post management
+
+All state-changing routes below are POST, authenticated, CSRF-protected, and
+**owner-only** (a non-owner receives `403`).
+
+#### `GET /post?id={id}`
+Single-post page. `404` if the post doesn't exist or isn't visible to the viewer.
+
+#### `GET /posts/edit?id={id}`  *(owner, JSON)*
+Returns the post's current fields + image list to populate the edit modal.
+
+#### `POST /posts/update?id={id}`  *(owner, multipart)*
+Edit caption/details and manage images. Fields as `POST /posts/store`, plus:
+| Field             | Notes                                            |
+|-------------------|--------------------------------------------------|
+| `order[]`         | kept existing image ids in display order         |
+| `remove_images[]` | existing image ids to delete                     |
+| `images[]`        | new image files (appended)                       |
+
+Image count is validated (1..`UPLOAD_MAX_FILES`) **before** any change is applied.
+
+#### `POST /posts/delete?id={id}`  *(owner)*
+Deletes the post; images, likes, comments, saves and reposts cascade.
+
+## Comments (edit / delete)
+
+#### `POST /posts/comment/update?id={commentId}`  *(author-only)*
+Body: `body` (plain text, 1..1000). `403` if not the author.
+
+#### `POST /posts/comment/delete?id={commentId}`  *(author-only)*
+Returns the new `commentCount`. `403` if not the author.
+
+## Saves
+
+#### `POST /posts/save?id={id}` · `POST /posts/unsave?id={id}`
+Idempotent bookmark toggle → `{ "saved": true }`.
+
+#### `GET /saved`
+The current user's saved-post collection page.
+
+## Reposts
+
+#### `POST /posts/repost?id={id}` · `POST /posts/unrepost?id={id}`
+Repost a **public** post (not your own) → `{ "reposted": true, "repostCount": 1 }`.
+`422` if the post is private or your own. Reposts surface in followers' timelines.
+
+## Direct messages
+
+#### `GET /messages`
+Conversation list (latest message + unread count per participant).
+
+#### `GET /messages/thread?with={userId}`
+Thread view; marks incoming messages read. Shared posts render a preview + link.
+
+#### `POST /messages/send`
+Fields: `recipient` (user id), `body` (1..2000). Redirects to the thread.
+
+#### `POST /messages/share?id={postId}`
+Share a post via DM. Fields: `recipient` (user id), optional `body`. The sender
+must be able to see the post (`403` otherwise). JSON → `{ "redirect": "..." }`.

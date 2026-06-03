@@ -22,6 +22,7 @@ $needsEditor = Auth::check();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?= e(Csrf::token()) ?>">
     <meta name="base-path" content="<?= e((string) config('app.base_path', '')) ?>">
+    <meta name="user-id" content="<?= Auth::check() ? (int) Auth::id() : '' ?>">
     <title><?= e($title) ?></title>
     <link rel="icon" href="<?= asset('assets/favicon.ico') ?>">
     <link rel="stylesheet" href="<?= asset('css/app.css') ?>">
@@ -54,6 +55,8 @@ $needsEditor = Auth::check();
 
     <?php if ($needsEditor): ?>
         <?= View::partial('partials.upload-modal') ?>
+        <?= View::partial('partials.edit-modal') ?>
+        <?= View::partial('partials.share-modal') ?>
     <?php endif; ?>
 
     <script src="<?= asset('js/theme.js') ?>" defer></script>
@@ -61,6 +64,7 @@ $needsEditor = Auth::check();
     <?php if ($needsEditor): ?>
         <script src="<?= asset('vendor/quill/quill.js') ?>" defer></script>
         <script src="<?= asset('js/upload.js') ?>" defer></script>
+        <script src="<?= asset('js/edit.js') ?>" defer></script>
     <?php endif; ?>
 </body>
 

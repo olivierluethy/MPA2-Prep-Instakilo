@@ -79,7 +79,7 @@ use App\Core\View;
         <?php else: ?>
             <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <?php foreach ($posts as $post): ?>
-                    <?= View::partial('partials.post-card', ['post' => $post, 'isLoggedIn' => true]) ?>
+                    <?= View::partial('partials.post-card', ['post' => $post, 'isLoggedIn' => true, 'viewerId' => (int) $user['id']]) ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
