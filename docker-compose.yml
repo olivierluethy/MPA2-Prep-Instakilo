@@ -72,6 +72,22 @@ services:
       # Keep node_modules inside the container only (off the host).
       - assets-node-modules:/app/node_modules
 
+  # Web UI for inspecting the MySQL database during development.
+  # Opens at http://localhost:8082 (8080 = app, 8081 taken by another project).
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: instakilo-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db          # the MySQL service name on the compose network
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "${PMA_PORT:-8082}:80"
+
 volumes:
   db-data:
   assets-node-modules:
