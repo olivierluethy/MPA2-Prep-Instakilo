@@ -136,6 +136,49 @@ if (!function_exists('format_date')) {
     }
 }
 
+if (!function_exists('time_ago')) {
+    /**
+     * Compact relative timestamp (German), e.g. "vor 5 Sekunden", "vor 2
+     * Minuten", "vor 1 Stunde", "Gestern", "vor 3 Tagen". Older than a week
+     * falls back to an absolute date. Returns '' for empty/unparseable input.
+     */
+    function time_ago(?string $value): string
+    {
+        if ($value === null || trim($value) === '') {
+            return '';
+        }
+        try {
+            $then = new DateTimeImmutable($value);
+        } catch (Exception) {
+            return '';
+        }
+        $diff = (new DateTimeImmutable('now'))->getTimestamp() - $then->getTimestamp();
+        if ($diff < 0) {
+            $diff = 0;
+        }
+        $unit = static fn (int $n, string $one, string $many): string =>
+            'vor ' . $n . ' ' . ($n === 1 ? $one : $many);
+
+        if ($diff < 60) {
+            return $unit($diff, 'Sekunde', 'Sekunden');
+        }
+        if ($diff < 3600) {
+            return $unit(intdiv($diff, 60), 'Minute', 'Minuten');
+        }
+        if ($diff < 86400) {
+            return $unit(intdiv($diff, 3600), 'Stunde', 'Stunden');
+        }
+        $days = intdiv($diff, 86400);
+        if ($days === 1) {
+            return 'Gestern';
+        }
+        if ($days < 7) {
+            return $unit($days, 'Tag', 'Tagen');
+        }
+        return format_date($value);
+    }
+}
+
 if (!function_exists('iso_datetime')) {
     /**
      * Machine-readable timestamp for the <time datetime="…"> attribute.

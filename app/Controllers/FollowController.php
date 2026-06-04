@@ -8,6 +8,7 @@ use App\Core\Auth;
 use App\Core\Controller;
 use App\Core\Request;
 use App\Models\Follow;
+use App\Models\Notification;
 
 /**
  * Follow / unfollow actions. POST-only and CSRF-protected (previously these
@@ -40,6 +41,8 @@ final class FollowController extends Controller
 
         if ($follow) {
             $model->follow($targetId, $me);
+            // Notify the followed user (reference = the follower's own id).
+            (new Notification())->create($targetId, $me, 'follow', $me);
         } else {
             $model->unfollow($targetId, $me);
         }

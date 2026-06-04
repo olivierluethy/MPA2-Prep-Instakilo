@@ -69,6 +69,7 @@ $needsEditor = Auth::check();
         <script src="<?= asset('js/edit.js') ?>" defer></script>
         <script src="<?= asset('js/emoji.js') ?>" defer></script>
         <script src="<?= asset('js/messages.js') ?>" defer></script>
+        <script src="<?= asset('js/notifications.js') ?>" defer></script>
     <?php endif; ?>
 </body>
 

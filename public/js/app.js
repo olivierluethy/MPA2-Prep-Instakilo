@@ -609,23 +609,42 @@
         setInterval(pollStats, 15000);
     }
 
-    /* ---------- Live DM unread badge ---------- */
-    const dmBadge = document.querySelector('[data-dm-badge]');
-    if (dmBadge && currentUserId) {
-        const pollUnread = () => {
-            getJson(appUrl('messages/unread'))
+    /* ---------- Live unread badges (DMs + notifications) ---------- */
+    function badgePoller(badge, endpoint, interval) {
+        if (!badge || !currentUserId) return;
+        const poll = () => {
+            getJson(appUrl(endpoint))
                 .then(({ ok, body }) => {
                     if (!ok || !body.success) return;
                     const n = body.data.count;
                     if (n > 0) {
-                        dmBadge.textContent = n > 9 ? '9+' : n;
-                        dmBadge.classList.remove('hidden');
+                        badge.textContent = n > 9 ? '9+' : n;
+                        badge.classList.remove('hidden');
                     } else {
-                        dmBadge.classList.add('hidden');
+                        badge.classList.add('hidden');
                     }
                 })
                 .catch(() => {});
         };
-        setInterval(pollUnread, 20000);
+        poll(); // refresh immediately on load
+        setInterval(poll, interval);
     }
+    badgePoller(document.querySelector('[data-dm-badge]'), 'messages/unread', 20000);
+    // Skip the global notification poll on the notifications page itself — its
+    // own poller (notifications.js) owns the badge there to avoid double-fetching.
+    if (!document.querySelector('[data-notifications]')) {
+        badgePoller(document.querySelector('[data-notif-badge]'), 'notifications/unread', 15000);
+    }
+
+    // Let notifications.js push live counts into the nav badge.
+    window.InstakiloBadge = function (selector, n) {
+        const badge = document.querySelector(selector);
+        if (!badge) return;
+        if (n > 0) {
+            badge.textContent = n > 9 ? '9+' : n;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    };
 })();

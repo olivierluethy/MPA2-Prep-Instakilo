@@ -70,6 +70,14 @@ $router->get('messages/unread', 'MessageController@unread');  // -> {count} for 
 $router->post('messages/typing', 'MessageController@typing'); // ?with=
 $router->get('messages/media', 'MessageController@media');   // ?id= -> serves attachment
 
+/* ---------- Notifications ---------- */
+$router->get('notifications', 'NotificationController@index');
+$router->get('notifications/poll', 'NotificationController@poll');     // -> {count, sig, html?}
+$router->get('notifications/unread', 'NotificationController@unread');  // -> {count} for nav badge
+$router->get('notifications/more', 'NotificationController@more');      // ?page= -> older items
+$router->post('notifications/read', 'NotificationController@read');     // ?id= -> mark one/group read
+$router->post('notifications/read-all', 'NotificationController@readAll');
+
 /* ---------- Search ---------- */
 $router->get('search', 'SearchController@users');            // ?q= -> JSON users + posts
 

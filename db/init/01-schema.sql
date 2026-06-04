@@ -188,6 +188,38 @@ CREATE TABLE IF NOT EXISTS dm_typing (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
 
 -- ---------------------------------------------------------------------------
+-- notifications  (generic, type-driven activity feed)
+--
+-- One row per (recipient, actor, type, reference) event. Designed to support
+-- future types (repost, save, mention, message, share) WITHOUT schema changes:
+--   type         = event kind ('like' | 'comment' | 'follow' | …)
+--   reference_id = the subject the event is about (post id for like/comment;
+--                  the actor's id for follow). Polymorphic, so no FK on it —
+--                  references are validated in PHP at create/render time.
+--   secondary_id = optional extra target (e.g. the comment id, for deep-linking)
+-- The UNIQUE key dedupes repeat events (re-like, re-comment, re-follow) so a
+-- single actor never spams the recipient; ON DUPLICATE bumps it back to unread.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS notifications (
+    id                INT         NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    recipient_user_id INT         NOT NULL,
+    actor_user_id     INT         NOT NULL,
+    type              VARCHAR(40) NOT NULL,
+    reference_id      INT         DEFAULT NULL,
+    secondary_id      INT         DEFAULT NULL,
+    is_read           TINYINT(1)  NOT NULL DEFAULT 0,
+    created_at        DATETIME    DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uniq_event (recipient_user_id, actor_user_id, type, reference_id),
+    CONSTRAINT fk_notif_recipient FOREIGN KEY (recipient_user_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_notif_actor     FOREIGN KEY (actor_user_id)     REFERENCES users (id) ON DELETE CASCADE,
+    -- Inbox listing (newest first) and unread-count lookups are both covered:
+    INDEX idx_notif_inbox (recipient_user_id, created_at),
+    INDEX idx_notif_unread (recipient_user_id, is_read),
+    -- Grouping like/comment events by their subject:
+    INDEX idx_notif_group (recipient_user_id, type, reference_id, created_at)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+-- ---------------------------------------------------------------------------
 -- Seed users (demo). Password for both accounts: "kauz.git"
 -- ---------------------------------------------------------------------------
 INSERT INTO users (username, email, password, description) VALUES

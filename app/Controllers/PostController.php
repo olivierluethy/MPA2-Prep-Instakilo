@@ -11,6 +11,7 @@ use App\Core\Request;
 use App\Core\Validator;
 use App\Models\Comment;
 use App\Models\Like;
+use App\Models\Notification;
 use App\Models\Post;
 use App\Models\PostImage;
 use App\Models\Repost;
@@ -143,6 +144,12 @@ final class PostController extends Controller
         }
 
         $created = $comments->create($postId, (int) Auth::id(), $body);
+
+        // Notify the post's author; deep-links to this comment.
+        $ownerId = (new Post())->ownerId($postId);
+        if ($ownerId !== null) {
+            (new Notification())->create($ownerId, (int) Auth::id(), 'comment', $postId, (int) $created['id']);
+        }
 
         $this->ok([
             'comment' => [
@@ -560,6 +567,14 @@ final class PostController extends Controller
         $userId = (int) Auth::id();
 
         $like ? $likes->like($postId, $userId) : $likes->unlike($postId, $userId);
+
+        // Notify the post's author on a like (historical rows are kept on unlike).
+        if ($like) {
+            $ownerId = (new Post())->ownerId($postId);
+            if ($ownerId !== null) {
+                (new Notification())->create($ownerId, $userId, 'like', $postId);
+            }
+        }
 
         if ($request->wantsJson()) {
             $this->ok(['liked' => $like, 'likeCount' => $likes->countForPost($postId)]);

@@ -4,7 +4,9 @@ module.exports = {
     darkMode: 'class',
     // Scan every place a class name can appear so the purge keeps real classes.
     content: [
-        './app/Views/**/*.php',
+        // All PHP is scanned (not just Views) so class names emitted from
+        // presenter classes like app/Core/NotificationType.php are kept.
+        './app/**/*.php',
         './public/js/**/*.js',
     ],
     // Safelist classes that are only ever added dynamically from JS.

@@ -200,6 +200,13 @@ final class Post extends Model
         );
     }
 
+    /** The author of a post, or null if it does not exist. */
+    public function ownerId(int $id): ?int
+    {
+        $row = $this->fetchOne('SELECT user_id FROM posts WHERE id = :id', ['id' => $id]);
+        return $row === null ? null : (int) $row['user_id'];
+    }
+
     public function isOwnedBy(int $id, int $userId): bool
     {
         return (bool) $this->fetchOne(
