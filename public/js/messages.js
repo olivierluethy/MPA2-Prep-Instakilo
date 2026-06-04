@@ -71,38 +71,145 @@
         post(appUrl('messages/react?id=' + b.dataset.reactMsg), { emoji: b.dataset.reactEmoji }).then(() => poll());
     });
 
-    // Quick-react popover.
+    // Toggle a reaction from a chosen emoji (used by the quick bar and the picker).
+    function react(msgId, emoji) {
+        post(appUrl('messages/react?id=' + msgId), { emoji }).then(() => poll());
+    }
+
+    /* Quick-react popover with a "+" that opens the full emoji library.
+       Anchored to the element that opened it (the three-dots trigger). */
     const QUICK = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
     let quickPop = null;
     function closeQuick() {
         quickPop?.remove();
         quickPop = null;
     }
-    list.addEventListener('click', (e) => {
-        const trigger = e.target.closest('[data-msg-react]');
-        if (!trigger) return;
+    function openReactionPicker(msgId, anchorEl) {
         closeQuick();
-        const msgId = trigger.closest('[data-message]').dataset.id;
         quickPop = document.createElement('div');
-        quickPop.className = 'absolute z-50 flex gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900';
+        quickPop.className =
+            'absolute z-50 flex items-center gap-1 rounded-full border border-gray-200 bg-white p-1 shadow-lg dark:border-gray-700 dark:bg-gray-900';
         QUICK.forEach((emoji) => {
             const b = document.createElement('button');
             b.type = 'button';
             b.className = 'rounded-full px-1 text-lg hover:bg-gray-100 dark:hover:bg-gray-800';
             b.textContent = emoji;
             b.addEventListener('click', () => {
-                post(appUrl('messages/react?id=' + msgId), { emoji }).then(() => poll());
+                react(msgId, emoji);
                 closeQuick();
             });
             quickPop.appendChild(b);
         });
+        // "+" opens the searchable emoji library for the full range of reactions.
+        const more = document.createElement('button');
+        more.type = 'button';
+        more.className =
+            'flex h-7 w-7 items-center justify-center rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700';
+        more.setAttribute('aria-label', 'Weitere Emojis');
+        more.textContent = '+';
+        more.addEventListener('click', () => {
+            if (window.EmojiPicker) {
+                window.EmojiPicker.open(more, (emoji) => react(msgId, emoji));
+            }
+            closeQuick();
+        });
+        quickPop.appendChild(more);
+
         document.body.appendChild(quickPop);
-        const r = trigger.getBoundingClientRect();
-        quickPop.style.top = window.scrollY + r.top - quickPop.offsetHeight - 4 + 'px';
-        quickPop.style.left = window.scrollX + r.left + 'px';
+        const r = anchorEl.getBoundingClientRect();
+        quickPop.style.top = window.scrollY + r.top - quickPop.offsetHeight - 6 + 'px';
+        quickPop.style.left = window.scrollX + Math.max(8, r.left - quickPop.offsetWidth / 2) + 'px';
+    }
+    document.addEventListener('click', (e) => {
+        if (quickPop && !quickPop.contains(e.target) && !e.target.closest('[data-msg-menu-toggle]')) closeQuick();
+    });
+
+    /* ===================== Message action menu (three-dots) ===================== */
+    const ICONS = {
+        reply: 'M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3',
+        react: 'M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm5.25 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Z',
+        edit: 'm16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125',
+        delete: 'm14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.158-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.043-2.09 1.02-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0',
+    };
+    function icon(d) {
+        return '<svg fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="' + d + '"/></svg>';
+    }
+
+    let menuPop = null;
+    let menuOwner = null;
+    function closeMenu() {
+        if (menuOwner) menuOwner.setAttribute('aria-expanded', 'false');
+        menuPop?.remove();
+        menuPop = null;
+        menuOwner = null;
+    }
+    function addItem(menu, label, d, action, danger) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'msg-menu-item' + (danger ? ' is-danger' : '');
+        b.innerHTML = icon(d) + '<span>' + label + '</span>';
+        b.addEventListener('click', () => action());
+        menu.appendChild(b);
+    }
+    function openMenu(el, toggle) {
+        const mine = el.dataset.mine === '1';
+        const canEdit = mine && !!el.querySelector('[data-body]');
+        menuPop = document.createElement('div');
+        menuPop.className = 'msg-menu';
+        addItem(menuPop, 'Antworten', ICONS.reply, () => {
+            closeMenu();
+            startReply(el);
+        });
+        addItem(menuPop, 'Reagieren', ICONS.react, () => {
+            const anchor = toggle;
+            closeMenu();
+            openReactionPicker(el.dataset.id, anchor);
+        });
+        if (canEdit) {
+            addItem(menuPop, 'Bearbeiten', ICONS.edit, () => {
+                closeMenu();
+                startEdit(el);
+            });
+        }
+        if (mine) {
+            addItem(menuPop, 'Löschen', ICONS.delete, () => {
+                closeMenu();
+                confirmDelete(el);
+            }, true);
+        }
+
+        document.body.appendChild(menuPop);
+        toggle.setAttribute('aria-expanded', 'true');
+        menuOwner = toggle;
+        // Fixed positioning (menu lives on <body>) keeps it clear of the
+        // thread's overflow clipping; flip up / clamp into the viewport.
+        const r = toggle.getBoundingClientRect();
+        const mh = menuPop.offsetHeight;
+        const mw = menuPop.offsetWidth;
+        let top = r.bottom + 4;
+        if (top + mh > window.innerHeight - 8) top = Math.max(8, r.top - mh - 4);
+        let left = mine ? r.right - mw : r.left;
+        left = Math.min(window.innerWidth - mw - 8, Math.max(8, left));
+        menuPop.style.top = top + 'px';
+        menuPop.style.left = left + 'px';
+    }
+    list.addEventListener('click', (e) => {
+        const toggle = e.target.closest('[data-msg-menu-toggle]');
+        if (!toggle) return;
+        const el = toggle.closest('[data-message]');
+        const reopen = menuOwner === toggle;
+        closeMenu();
+        closeQuick();
+        if (!reopen) openMenu(el, toggle);
     });
     document.addEventListener('click', (e) => {
-        if (quickPop && !quickPop.contains(e.target) && !e.target.closest('[data-msg-react]')) closeQuick();
+        if (menuPop && !menuPop.contains(e.target) && !e.target.closest('[data-msg-menu-toggle]')) closeMenu();
+    });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeMenu();
+            closeQuick();
+        }
     });
 
     /* ===================== Reply ===================== */
@@ -122,14 +229,11 @@
         replyBar.classList.remove('flex');
     }
     root.querySelector('[data-reply-cancel]').addEventListener('click', clearReply);
-    list.addEventListener('click', (e) => {
-        const trigger = e.target.closest('[data-msg-reply]');
-        if (!trigger) return;
-        const el = trigger.closest('[data-message]');
+    function startReply(el) {
         const name = el.dataset.mine === '1' ? 'dir' : (root.querySelector('header .font-semibold')?.textContent || '');
         const snippet = (el.dataset.text || '').slice(0, 80) || '[Anhang]';
         setReply(el.dataset.id, name, snippet);
-    });
+    }
     // Jump to a referenced message.
     list.addEventListener('click', (e) => {
         const jump = e.target.closest('[data-jump]');
@@ -143,10 +247,7 @@
     });
 
     /* ===================== Edit / Delete ===================== */
-    list.addEventListener('click', (e) => {
-        const trigger = e.target.closest('[data-msg-edit]');
-        if (!trigger) return;
-        const el = trigger.closest('[data-message]');
+    function startEdit(el) {
         const bodyEl = el.querySelector('[data-body]');
         if (!bodyEl || el.dataset.editing) return;
         el.dataset.editing = '1';
@@ -191,16 +292,13 @@
             }
             if (ev.key === 'Escape') cleanup();
         });
-    });
-    list.addEventListener('click', (e) => {
-        const trigger = e.target.closest('[data-msg-delete]');
-        if (!trigger) return;
+    }
+    function confirmDelete(el) {
         if (!window.confirm('Nachricht löschen?')) return;
-        const el = trigger.closest('[data-message]');
         post(appUrl('messages/delete?id=' + el.dataset.id), {}).then(({ ok, body }) => {
             if (ok && body.success) poll();
         });
-    });
+    }
 
     /* ===================== Filters ===================== */
     const activeTypes = new Set();

@@ -58,3 +58,61 @@
 .dark .ql-snow .ql-picker { color: #d1d5db; }
 .dark .ql-snow .ql-picker-options { @apply bg-gray-800; }
 .ql-editor { min-height: 8rem; }
+
+/*
+ * Components below are authored as plain CSS (not @apply) so they render
+ * correctly even when the Tailwind build has not been re-run. Colours follow
+ * the default Tailwind palette already used across the UI.
+ */
+
+/* ===== DM message action menu (stable three-dots) =====================
+   A message bubble keeps a fixed-width action slot beside it, so revealing
+   the three-dots button on hover never reflows the bubble. */
+.msg-row { display: flex; align-items: center; gap: 0.25rem; max-width: 85%; }
+.msg-row.is-mine { flex-direction: row-reverse; }
+.msg-row > .msg-bubble { min-width: 0; }
+
+.msg-actions { position: relative; flex: none; }
+.msg-actions-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    height: 1.75rem; width: 1.75rem; border-radius: 9999px;
+    color: #9ca3af; background: transparent; border: 0; cursor: pointer;
+    opacity: 0; transition: opacity .15s ease, background-color .15s ease, color .15s ease;
+}
+.msg-actions-btn svg { height: 1.15rem; width: 1.15rem; }
+.group:hover .msg-actions-btn,
+.msg-actions-btn:focus-visible,
+.msg-actions-btn[aria-expanded="true"] { opacity: 1; }
+.msg-actions-btn:hover { background: #f3f4f6; color: #4b5563; }
+.dark .msg-actions-btn:hover { background: #1f2937; color: #e5e7eb; }
+/* Touch devices have no hover — keep the trigger permanently visible. */
+@media (hover: none) { .msg-actions-btn { opacity: 1; } }
+
+/* Floating menu is appended to <body> by messages.js (position: fixed),
+   so it is never clipped by the scrollable thread. */
+.msg-menu {
+    position: fixed; z-index: 60; min-width: 11rem; overflow: hidden;
+    border-radius: 0.6rem; border: 1px solid #e5e7eb; background: #ffffff;
+    padding: 0.25rem 0;
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,.12), 0 4px 6px -4px rgba(0,0,0,.12);
+}
+.dark .msg-menu { border-color: #1f2937; background: #111827; }
+.msg-menu-item {
+    display: flex; align-items: center; gap: 0.625rem; width: 100%;
+    padding: 0.5rem 0.85rem; font-size: 0.8125rem; line-height: 1.25rem;
+    color: #374151; text-align: left; background: transparent; border: 0; cursor: pointer;
+}
+.dark .msg-menu-item { color: #e5e7eb; }
+.msg-menu-item:hover { background: #f3f4f6; }
+.dark .msg-menu-item:hover { background: #1f2937; }
+.msg-menu-item svg { height: 1rem; width: 1rem; flex: none; }
+.msg-menu-item.is-danger { color: #e11d48; }
+.dark .msg-menu-item.is-danger { color: #fb7185; }
+
+/* ===== Auth form: leading field icons ================================= */
+.field { position: relative; }
+.field-icon {
+    position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
+    height: 1.15rem; width: 1.15rem; color: #9ca3af; pointer-events: none;
+}
+.field .input { padding-left: 2.5rem; }

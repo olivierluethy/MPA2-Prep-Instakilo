@@ -37,7 +37,8 @@ $bubble = $mine
      data-kinds="<?= e(implode(',', $kinds)) ?>" data-ts="<?= (int) strtotime((string) $m['created_at']) ?>"
      data-has-link="<?= $hasLink ? '1' : '0' ?>" data-text="<?= e($searchText) ?>">
 
-    <div class="max-w-[80%] space-y-1 rounded-2xl px-3 py-2 text-sm <?= $bubble ?>">
+    <div class="msg-row <?= $mine ? 'is-mine' : '' ?>">
+        <div class="msg-bubble space-y-1 rounded-2xl px-3 py-2 text-sm <?= $bubble ?>">
         <?php if ($deleted): ?>
             <p class="italic opacity-70">Nachricht gelöscht</p>
         <?php else: ?>
@@ -103,22 +104,19 @@ $bubble = $mine
                 <?= e(format_datetime($m['created_at'])) ?><?php if (!empty($m['edited'])): ?> · bearbeitet<?php endif; ?>
             </span>
         <?php endif; ?>
-    </div>
+        </div><!-- /.msg-bubble -->
+
+        <?php if (!$deleted): ?>
+            <!-- Stable three-dots trigger; the menu itself is built by messages.js -->
+            <div class="msg-actions" data-msg-menu>
+                <button type="button" class="msg-actions-btn" data-msg-menu-toggle
+                        aria-haspopup="true" aria-expanded="false" aria-label="Nachrichtenoptionen">
+                    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 12.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5ZM12 18.75a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z"/></svg>
+                </button>
+            </div>
+        <?php endif; ?>
+    </div><!-- /.msg-row -->
 
     <!-- Reaction badges (filled by messages.js) -->
     <div class="mt-0.5 flex flex-wrap gap-1" data-reactions></div>
-
-    <?php if (!$deleted): ?>
-        <!-- Hover actions -->
-        <div class="mt-0.5 hidden gap-2 text-xs text-gray-400 group-hover:flex">
-            <button type="button" data-msg-reply class="hover:text-indigo-500">Antworten</button>
-            <button type="button" data-msg-react class="hover:text-indigo-500">Reagieren</button>
-            <?php if ($mine && $kind !== 'post'): ?>
-                <button type="button" data-msg-edit class="hover:text-indigo-500">Bearbeiten</button>
-            <?php endif; ?>
-            <?php if ($mine): ?>
-                <button type="button" data-msg-delete class="hover:text-rose-500">Löschen</button>
-            <?php endif; ?>
-        </div>
-    <?php endif; ?>
 </div>
