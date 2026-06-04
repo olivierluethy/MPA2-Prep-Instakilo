@@ -279,22 +279,96 @@
         applyFilters();
     });
 
-    /* ---------- Timeline: epoch buckets (works at any granularity) ---------- */
-    const BUCKETS = 40;
+    /* ---------- Timeline: ONE range slider (two boundaries) over the epoch range ----------
+       All time state is epoch seconds (UTC-consistent with the backend). A single
+       setRange() pipeline is the only writer of the range — handle drags, the
+       date/time inputs and reset all funnel through it, keeping slider, fill,
+       inputs, histogram and filters in sync (no dual-slider desync). */
+    const BUCKETS = 48;
     const filterPanel = root.querySelector('[data-filter-panel]');
     const timeline = root.querySelector('[data-timeline]');
     const histo = root.querySelector('[data-histogram]');
-    const startRange = root.querySelector('[data-range-start]');
-    const endRange = root.querySelector('[data-range-end]');
-    const startLabel = root.querySelector('[data-range-start-label]');
-    const endLabel = root.querySelector('[data-range-end-label]');
-    let minTs = 0, maxTs = 0, bucketSize = 1, startIdx = 0, endIdx = BUCKETS;
+    const sliderEl = root.querySelector('[data-slider]');
+    const fillEl = root.querySelector('[data-range-fill]');
+    const handleStart = root.querySelector('[data-handle="start"]');
+    const handleEnd = root.querySelector('[data-handle="end"]');
+    const tipEl = root.querySelector('[data-slider-tooltip]');
+    const startInput = root.querySelector('[data-range-start-input]');
+    const endInput = root.querySelector('[data-range-end-input]');
+    let minTs = 0, maxTs = 0, bucketSize = 1, histoCounts = [];
+    let dragging = false;
+
+    const clampTs = (t) => Math.min(maxTs, Math.max(minTs, Math.round(t)));
+    const tsToFrac = (t) => (maxTs > minTs ? (t - minTs) / (maxTs - minTs) : 0);
+    const fracToTs = (f) => minTs + f * (maxTs - minTs);
 
     function fmt(ts) {
         const d = new Date(ts * 1000);
         const p = (n) => String(n).padStart(2, '0');
         return p(d.getDate()) + '.' + p(d.getMonth() + 1) + '. ' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
     }
+    // datetime-local helpers (local wall-clock <-> epoch; no drift, conversions are inverse).
+    function toInputValue(ts) {
+        const d = new Date(ts * 1000);
+        const p = (n) => String(n).padStart(2, '0');
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + 'T' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds());
+    }
+    function fromInputValue(v) {
+        const t = Date.parse(v);
+        return Number.isNaN(t) ? null : Math.floor(t / 1000);
+    }
+
+    function renderHisto() {
+        bucketSize = (maxTs - minTs) / BUCKETS || 1;
+        histoCounts = new Array(BUCKETS).fill(0);
+        messageEls().forEach((el) => {
+            const t = parseInt(el.dataset.ts, 10);
+            let idx = Math.floor((t - minTs) / bucketSize);
+            if (idx < 0) idx = 0;
+            if (idx >= BUCKETS) idx = BUCKETS - 1;
+            histoCounts[idx]++;
+        });
+        const max = Math.max(...histoCounts, 1);
+        histo.innerHTML = '';
+        histoCounts.forEach((c, i) => {
+            const center = minTs + (i + 0.5) * bucketSize;
+            const inRange = center >= rangeStartTs && center <= rangeEndTs;
+            const bar = document.createElement('div');
+            bar.className = 'flex-1 rounded-t ' + (inRange ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-700');
+            bar.style.height = Math.max(6, Math.round((c / max) * 100)) + '%';
+            histo.appendChild(bar);
+        });
+    }
+
+    function countAt(ts) {
+        let idx = Math.floor((ts - minTs) / bucketSize);
+        if (idx < 0) idx = 0;
+        if (idx >= BUCKETS) idx = BUCKETS - 1;
+        return histoCounts[idx] || 0;
+    }
+
+    // THE single synchronization pipeline.
+    function setRange(startTs, endTs, source) {
+        let s = clampTs(startTs);
+        let e = clampTs(endTs);
+        if (s > e) [s, e] = [e, s];
+        rangeStartTs = s;
+        rangeEndTs = e;
+
+        const fs = tsToFrac(s) * 100;
+        const fe = tsToFrac(e) * 100;
+        handleStart.style.left = fs + '%';
+        handleEnd.style.left = fe + '%';
+        fillEl.style.left = fs + '%';
+        fillEl.style.width = (fe - fs) + '%';
+
+        if (source !== 'input-start') startInput.value = toInputValue(s);
+        if (source !== 'input-end') endInput.value = toInputValue(e);
+
+        renderHisto();
+        applyFilters();
+    }
+
     function buildTimeline() {
         const ts = messageEls().map((el) => parseInt(el.dataset.ts, 10)).filter((n) => n > 0);
         if (!ts.length) {
@@ -305,52 +379,79 @@
         minTs = Math.min(...ts);
         maxTs = Math.max(...ts);
         if (maxTs <= minTs) maxTs = minTs + 1;
-        bucketSize = (maxTs - minTs) / BUCKETS;
-        startRange.min = endRange.min = '0';
-        startRange.max = endRange.max = String(BUCKETS);
-        startRange.value = String(startIdx);
-        endRange.value = String(endIdx);
-        updateRange();
+        startInput.min = endInput.min = toInputValue(minTs);
+        startInput.max = endInput.max = toInputValue(maxTs);
+
+        // First open selects the full range; later rebuilds keep the user's range.
+        if (rangeStartTs === null) {
+            setRange(minTs, maxTs);
+        } else {
+            setRange(rangeStartTs, rangeEndTs);
+        }
     }
-    function bucketAt(i) {
-        return minTs + i * bucketSize;
+
+    /* --- interactions --- */
+    function pointerToTs(clientX) {
+        const r = sliderEl.getBoundingClientRect();
+        const f = Math.min(1, Math.max(0, (clientX - r.left) / r.width));
+        return fracToTs(f);
     }
-    function updateRange() {
-        rangeStartTs = Math.floor(bucketAt(startIdx));
-        rangeEndTs = Math.ceil(bucketAt(endIdx));
-        startLabel.textContent = fmt(rangeStartTs);
-        endLabel.textContent = fmt(rangeEndTs);
-        // histogram
-        const counts = new Array(BUCKETS).fill(0);
-        messageEls().forEach((el) => {
-            const t = parseInt(el.dataset.ts, 10);
-            let idx = Math.floor((t - minTs) / bucketSize);
-            if (idx < 0) idx = 0;
-            if (idx >= BUCKETS) idx = BUCKETS - 1;
-            counts[idx]++;
-        });
-        const max = Math.max(...counts, 1);
-        histo.innerHTML = '';
-        counts.forEach((c, i) => {
-            const bar = document.createElement('div');
-            const inRange = i >= startIdx && i < endIdx;
-            bar.className = 'flex-1 rounded-t ' + (inRange ? 'bg-indigo-500' : 'bg-gray-300 dark:bg-gray-700');
-            bar.style.height = Math.max(6, Math.round((c / max) * 100)) + '%';
-            bar.title = fmt(Math.floor(bucketAt(i))) + ' – ' + fmt(Math.floor(bucketAt(i + 1))) + ': ' + c + ' Nachricht(en)';
-            histo.appendChild(bar);
-        });
-        applyFilters();
+    function showTip(ts) {
+        tipEl.style.left = tsToFrac(ts) * 100 + '%';
+        tipEl.textContent = fmt(ts) + ' · ' + countAt(ts) + ' Nachr.';
+        tipEl.classList.remove('hidden');
     }
-    function onSlider() {
-        let s = parseInt(startRange.value, 10);
-        let e = parseInt(endRange.value, 10);
-        if (s > e) [s, e] = [e, s];
-        startIdx = s;
-        endIdx = Math.max(e, s + 1);
-        updateRange();
+    function hideTip() {
+        tipEl.classList.add('hidden');
     }
-    startRange.addEventListener('input', onSlider);
-    endRange.addEventListener('input', onSlider);
+
+    function beginDrag(which) {
+        return (ev) => {
+            ev.preventDefault();
+            dragging = true;
+            const move = (e) => {
+                let t = pointerToTs(e.clientX);
+                // Clamp the dragged boundary so it cannot cross the other (no swap, no overlap).
+                if (which === 'start') {
+                    t = Math.min(t, rangeEndTs);
+                    setRange(t, rangeEndTs, 'drag');
+                } else {
+                    t = Math.max(t, rangeStartTs);
+                    setRange(rangeStartTs, t, 'drag');
+                }
+                showTip(t);
+            };
+            const up = () => {
+                dragging = false;
+                hideTip();
+                document.removeEventListener('pointermove', move);
+                document.removeEventListener('pointerup', up);
+            };
+            document.addEventListener('pointermove', move);
+            document.addEventListener('pointerup', up);
+        };
+    }
+    handleStart.addEventListener('pointerdown', beginDrag('start'));
+    handleEnd.addEventListener('pointerdown', beginDrag('end'));
+
+    // Hover anywhere on the track previews the timestamp + activity count.
+    sliderEl.addEventListener('pointermove', (e) => {
+        if (!dragging && !e.target.closest('[data-handle]')) showTip(pointerToTs(e.clientX));
+    });
+    sliderEl.addEventListener('pointerleave', () => {
+        if (!dragging) hideTip();
+    });
+
+    startInput.addEventListener('change', () => {
+        const t = fromInputValue(startInput.value);
+        if (t !== null) setRange(t, rangeEndTs, 'input-start');
+    });
+    endInput.addEventListener('change', () => {
+        const t = fromInputValue(endInput.value);
+        if (t !== null) setRange(rangeStartTs, t, 'input-end');
+    });
+    root.querySelector('[data-range-reset]').addEventListener('click', () => setRange(minTs, maxTs));
+
     root.querySelector('[data-filter-toggle]').addEventListener('click', () => {
         filterPanel.classList.toggle('hidden');
         if (!filterPanel.classList.contains('hidden')) buildTimeline();

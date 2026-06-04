@@ -46,13 +46,25 @@ $types = ['image' => 'Bilder', 'gif' => 'GIFs', 'video' => 'Videos', 'file' => '
 
         <input type="search" data-fuzzy class="input !py-1.5 text-sm" placeholder="Fuzzy-Suche (toleriert Tippfehler) …" autocomplete="off">
 
+        <!-- Single unified range slider: one track, two draggable boundaries,
+             activity markers behind it, and synced date/time inputs. -->
         <div data-timeline class="hidden">
-            <div class="mb-1 flex items-end gap-px" data-histogram style="height:2.5rem"></div>
-            <input type="range" data-range-start class="w-full" min="0" max="100" value="0">
-            <input type="range" data-range-end class="w-full" min="0" max="100" value="100">
-            <p class="text-center text-xs text-gray-500 dark:text-gray-400">
-                <span data-range-start-label>–</span> bis <span data-range-end-label>–</span>
-            </p>
+            <div data-slider class="relative mb-3 h-12 touch-none select-none">
+                <div data-histogram class="absolute inset-x-0 top-0 bottom-2 flex items-end gap-px"></div>
+                <div class="absolute inset-x-0 bottom-1 h-1 rounded bg-gray-200 dark:bg-gray-700"></div>
+                <div data-range-fill class="absolute bottom-1 h-1 rounded bg-indigo-500"></div>
+                <button type="button" data-handle="start" aria-label="Startzeit"
+                        class="absolute bottom-1 z-10 h-4 w-4 -translate-x-1/2 translate-y-1/2 cursor-ew-resize rounded-full border-2 border-indigo-600 bg-white shadow dark:bg-gray-900"></button>
+                <button type="button" data-handle="end" aria-label="Endzeit"
+                        class="absolute bottom-1 z-10 h-4 w-4 -translate-x-1/2 translate-y-1/2 cursor-ew-resize rounded-full border-2 border-indigo-600 bg-white shadow dark:bg-gray-900"></button>
+                <div data-slider-tooltip class="pointer-events-none absolute bottom-full mb-1 hidden -translate-x-1/2 whitespace-nowrap rounded bg-gray-900 px-1.5 py-0.5 text-[10px] text-white"></div>
+            </div>
+            <div class="flex items-center gap-1.5 text-xs">
+                <input type="datetime-local" step="1" data-range-start-input class="input !py-1 text-xs" aria-label="Von">
+                <span class="text-gray-400">–</span>
+                <input type="datetime-local" step="1" data-range-end-input class="input !py-1 text-xs" aria-label="Bis">
+                <button type="button" data-range-reset class="ml-1 shrink-0 text-indigo-500 hover:underline">Reset</button>
+            </div>
         </div>
         <p class="hidden text-center text-xs text-gray-400" data-filter-empty>Keine Nachrichten entsprechen den Filtern.</p>
     </div>

@@ -141,8 +141,8 @@ UI.
 **DM filters (all client-side, combinable):** content-type, fuzzy text, and a
 time-range histogram operate on already-loaded messages via `data-*` attributes —
 no extra queries. Fuzzy search uses **Levenshtein distance** with a length-scaled
-threshold; the timeline buckets messages per day, renders an activity histogram
-(hover shows date + count) and two range sliders hide out-of-range messages.
+threshold; the timeline is a single dual-handle range slider over the message
+epoch range (see the timeline-slider note below).
 
 **Post creation:** images can be added by file, drag-drop, **URL** (downloaded
 server-side, SSRF-guarded) or **clipboard paste**; location has autocomplete and
@@ -184,6 +184,16 @@ client timeline buckets the **epoch range** (`min..max` seconds) into fixed
 buckets instead of calendar days — so filtering is correct at second/minute/hour
 granularity, including dense same-day (and same-second) conversations. The old
 day-bucketed slider (which assumed ≥1-day gaps) is gone.
+
+**Timeline slider (single control):** the two stacked `<input type=range>` were
+replaced by one analytics-style range slider — a single track with the activity
+histogram behind it, a highlighted selection bar, and two draggable boundary
+handles that cannot cross. A single `setRange(startTs, endTs, source)` pipeline is
+the only writer of the range; handle drags, the synced `datetime-local` start/end
+inputs and the reset button all funnel through it, so the slider, fill, inputs,
+histogram and filter never desync. A hover tooltip shows the timestamp + activity
+count at the cursor. Time state is epoch seconds throughout (no dual-slider state,
+no day assumptions).
 
 **Emoji picker:** a dependency-free picker (categories, search, localStorage
 recents) inserts at the input caret and dispatches `input` so the typing signal
